@@ -1,0 +1,6 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<resources>
+  <string name="string_UDPStart">UDP Started</string>
+  <string name="string_UDPMsgReceived">UDP message received</string>
+</resources>
