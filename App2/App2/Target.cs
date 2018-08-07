@@ -8,7 +8,7 @@ namespace XController
     public class Target
     {
         public string string_TargetName { get; private set; }
-        public Device device
+        public enum_Device device
         {
             get
             {
@@ -19,13 +19,13 @@ namespace XController
             {
                 switch (value)
                 {
-                    case Device.Car0:
+                    case enum_Device.Car0:
                         this.string_TargetName = "Car 0";
                         break;
-                    case Device.Car1:
+                    case enum_Device.Car1:
                         this.string_TargetName = "Car 1";
                         break;
-                    case Device.Marker:
+                    case enum_Device.Marker:
                         this.string_TargetName = "Marker";
                         break;
                     default:
@@ -36,12 +36,12 @@ namespace XController
             }
         }
 
-        private Device _device;
+        private enum_Device _device;
         public Target()
         {
 
         }
-        public Target(Device dev)
+        public Target(enum_Device dev)
         {
             this.device = dev;
         }
@@ -62,11 +62,11 @@ namespace XController
             {
                 new Target()
                 {
-                    device = Device.Car0
+                    device = enum_Device.Car0
                 },
                 new Target()
                 {
-                    device = Device.Car1
+                    device = enum_Device.Car1
                 }
             };
         }

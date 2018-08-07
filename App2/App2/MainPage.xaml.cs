@@ -14,7 +14,7 @@ using Android.OS;
 namespace XController
 {
 
-    public enum Device
+    public enum enum_Device
     {
         None,
         Car0,
@@ -58,7 +58,8 @@ namespace XController
 
         private IPAddress IPAddress_Car0 = IPAddress.Any;
         private IPAddress IPAddress_Car1 = IPAddress.Any;
-        private IPAddress IpAddress_Marker = IPAddress.None;
+        private IPAddress IPAddress_Marker = IPAddress.Any;
+        private IPAddress IPAddress_Local = IPAddress.Any;
 
         private TcpClient tcpClient_Car0 = new TcpClient(new IPEndPoint(IPAddress.None, 6688));
         private TcpClient tcpClient_Car1 = new TcpClient(new IPEndPoint(IPAddress.None, 6688));
@@ -67,7 +68,7 @@ namespace XController
         private Thread thread_UDPListener;
 
         private ObservableCollection<Target> targets;
-        private Device device_CurrentTarget
+        private enum_Device Device_CurrentTarget
         {
             get
             {
@@ -78,17 +79,17 @@ namespace XController
                 this._currentTarget = value;
                 switch(value)
                 {
-                    case Device.Car0:
+                    case enum_Device.Car0:
                         this.ConfigureWebVideo(this.IPAddress_Car0);
                         break;
 
-                    case Device.Car1:
+                    case enum_Device.Car1:
                         this.ConfigureWebVideo(this.IPAddress_Car1);
                         break;
                 }
             }
         }
-        private Device _currentTarget;
+        private enum_Device _currentTarget;
 
 
 		public MainPage()
@@ -141,7 +142,7 @@ namespace XController
             if(picker_Target.SelectedIndex != 0)
             {
                 Target result = targets[picker_Target.SelectedIndex - 1];
-                this.device_CurrentTarget = result.device;
+                this.Device_CurrentTarget = result.device;
                 this.Toast("已选择控制" + result.ToString(), false);
             }
         }
@@ -166,18 +167,11 @@ namespace XController
 
         private void InitializeNetwork()
         {
-            var localIP = Dns.GetHostAddresses(Dns.GetHostName()).First(ip => ip.AddressFamily == AddressFamily.InterNetwork);
+            IPAddress localIP = Dns.GetHostAddresses(Dns.GetHostName()).First(ip => ip.AddressFamily == AddressFamily.InterNetwork);
+            this.IPAddress_Local = localIP;
             this.Toast("本机IP地址：" + localIP.ToString(), true);
 
             this.udpClient = new UdpClient(this.Int_UDPPort);
-
-            // Using Android Service, which is not recommended for compatibility.
-            //var initNet = DependencyService.Get<IHeartbeatListener>();
-            //if(initNet != null)
-            //{
-            //    initNet.StartHeartbeatListener(6868);
-            //}
-
 
             // Using a thread.
             ThreadStart threadStart = new ThreadStart(this.UDPListener);
@@ -212,7 +206,7 @@ namespace XController
                 tmp = jObject["FromIP"].ToString();
                 IPAddress tmpIPAddress = IPAddress.Parse(tmp);
 
-                Device device = Device.None;
+                enum_Device device = enum_Device.None;
 
                 if (jObject["FromRole"].ToString() == "car")
                 {
@@ -223,7 +217,7 @@ namespace XController
                             {
                                 this.Toast("小车0已发现，IP：" + tmp, false, true);
                                 this.IPAddress_Car0 = tmpIPAddress;
-                                device = Device.Car0;
+                                device = enum_Device.Car0;
                             }
                             break;
                         case 1:
@@ -231,20 +225,20 @@ namespace XController
                             {
                                 this.Toast("小车1已发现，IP：" + tmp, false, true);
                                 this.IPAddress_Car1 = tmpIPAddress;
-                                device = Device.Car1;
+                                device = enum_Device.Car1;
                             }
                             break;
                     }
                 }
-                else if (jObject["FromRole"].ToString() == "marker" && tmpIPAddress != this.IpAddress_Marker)
+                else if (jObject["FromRole"].ToString() == "marker" && tmpIPAddress != this.IPAddress_Marker)
                 {
                     this.Toast("定位装置已发现，IP：" + tmp, false, true);
-                    this.IpAddress_Marker = tmpIPAddress;
-                    device = Device.Marker;
+                    this.IPAddress_Marker = tmpIPAddress;
+                    device = enum_Device.Marker;
                 }
                 else
                 {
-                    device = Device.None;
+                    device = enum_Device.None;
                 }
                 this.TCPConnectionManager(device, new IPEndPoint(tmpIPAddress, this.Int_TCPPort));
             }
@@ -255,13 +249,13 @@ namespace XController
         /// </summary>
         /// <param name="device"></param>
         /// <param name="iPEndPoint"></param>
-        private void TCPConnectionManager(Device device, IPEndPoint iPEndPoint)
+        private void TCPConnectionManager(enum_Device device, IPEndPoint iPEndPoint)
         {
             try
             {
                 switch (device)
                 {
-                    case Device.Car0:
+                    case enum_Device.Car0:
                         this.tcpClient_Car0 = new TcpClient();
                         this.tcpClient_Car0.Connect(iPEndPoint);
                         if (this.tcpClient_Car0.Connected)
@@ -274,7 +268,7 @@ namespace XController
                         }
                         break;
 
-                    case Device.Car1:
+                    case enum_Device.Car1:
                         this.tcpClient_Car1 = new TcpClient();
                         this.tcpClient_Car1.Connect(iPEndPoint);
                         if (this.tcpClient_Car1.Connected)
@@ -288,7 +282,7 @@ namespace XController
                         break;
 
 
-                    case Device.Marker:
+                    case enum_Device.Marker:
                         this.tcpClient_Marker = new TcpClient();
                         this.tcpClient_Marker.Connect(iPEndPoint);
                         if (this.tcpClient_Car1.Connected)
@@ -362,5 +356,67 @@ namespace XController
             }
         }
 
+        private JObject MessageAssembler(JObject subjson)
+        {
+            JObject jObject_Message = new JObject
+            {
+                {"Type" , "instruction"},
+                {"FromIP", this.IPAddress_Local.ToString() },
+                {"FromID", 0 },
+                {"FromRole", "Controller" },
+                {"Msg", subjson }
+            };
+            return jObject_Message;
+        }
+
+        private void MessageEmitter(enum_Device dev, JObject message)
+        {
+            string msg = message.ToString();
+            byte[] b = Encoding.UTF8.GetBytes(msg);
+
+            TcpClient targetClient;
+            NetworkStream stream;
+            switch (dev)
+            {
+                case enum_Device.Car0:
+                    targetClient = this.tcpClient_Car0;
+                    break;
+
+                case enum_Device.Car1:
+                    targetClient = this.tcpClient_Car1;
+                    break;
+
+                case enum_Device.Marker:
+                    targetClient = this.tcpClient_Marker;
+                    break;
+                default:
+                    targetClient = new TcpClient();
+                    break;
+            }
+
+            try
+            {
+
+                if (targetClient.Connected)
+                {
+                    stream = targetClient.GetStream();
+                    stream.Write(b, 0, b.Length);
+                    stream.Flush();
+                    stream.Close();
+                }
+                else
+                {
+                    this.Toast("未能连接到设备", false);
+                }
+
+            }
+            catch
+            {
+                this.Toast("网络错误", false, false);
+            }
+
+        }
+
     }
+
 }

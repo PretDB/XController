@@ -8,6 +8,7 @@ using Android.Runtime;
 using Android.Views;
 using Android.Widget;
 using Android.OS;
+using Android.Content;
 
 namespace XController.Droid
 {
@@ -26,8 +27,17 @@ namespace XController.Droid
 
             global::Xamarin.Forms.Forms.Init(this, bundle);
             LoadApplication(new App());
-
             
+        }
+    }
+
+
+    [Service(Exported = true, Name = "com.pretdb.XController.DeviceListener", IsolatedProcess = true)]
+    public class DeviceListener : Service
+    {
+        public override IBinder OnBind(Intent intent)
+        {
+            throw new NotImplementedException();
         }
     }
 }

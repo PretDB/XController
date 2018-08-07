@@ -9,6 +9,7 @@ using System.Threading;
 using System.Json;
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ConsoleApp1
 {
@@ -24,7 +25,7 @@ namespace ConsoleApp1
         }
         static void Main(string[] args)
         {
-            Program.TrySocket();
+            Program.ParseStringToJsonObject();
 
 
             Console.Read();
@@ -117,22 +118,43 @@ namespace ConsoleApp1
 
         static void ParseStringToJsonObject()
         {
-            string string_RawJsonString = "{" +
-                "\"Type\"" + " : " + "\"heartbeat\"," +
-                "\"FromIP\" : " + "\"10.10.10.18\"," +
-                "\"Msg\" : \"None\"" +
-                "}";
+            string string_RawJsonString = Program.MessageWithSubmessage();
 
-            dynamic jObject = Newtonsoft.Json.Linq.JObject.Parse(string_RawJsonString) as dynamic;
+            dynamic jObject = JObject.Parse(string_RawJsonString) as dynamic;
             Console.WriteLine(jObject);
             IPAddress ip = IPAddress.Parse(jObject.FromIP.ToString());
+            Console.WriteLine(ip.ToString());
+            Console.WriteLine("Name" + jObject.Msg.Name);
             Console.Read();
+        }
+
+        static string MessageWithSubmessage()
+        {
+            JObject jObject = new JObject
+            {
+                { "Name", "张三" },
+                {"Age", 15 },
+                {"Height", 177 }
+            };
+            IPAddress iPAddress = IPAddress.Parse("192.168.1.1");
+            JObject jObject_Message = new JObject
+            {
+                {"Type" , "instruction"},
+                {"FromIP",  iPAddress.ToString()},
+                {"FromID", 0 },
+                {"FromRole", "Controller" },
+                {"Msg", jObject }
+            };
+            Console.WriteLine(jObject_Message.ToString());
+            return jObject_Message.ToString();
         }
 
         static void CreateJsonObject()
         {
-            Newtonsoft.Json.Linq.JObject jObject_JsonObject = new Newtonsoft.Json.Linq.JObject();
-            jObject_JsonObject.Add("Enterd", DateTime.Now);
+            Newtonsoft.Json.Linq.JObject jObject_JsonObject = new Newtonsoft.Json.Linq.JObject
+            {
+                { "Enterd", DateTime.Now }
+            };
             dynamic album = jObject_JsonObject;
 
             album.AlbumName = "Dirty Deeds Don Dirt Cheap";
