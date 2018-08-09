@@ -32,13 +32,5 @@ namespace XController.Droid
     }
 
 
-    [Service(Exported = true, Name = "com.pretdb.XController.DeviceListener", IsolatedProcess = true)]
-    public class DeviceListener : Service
-    {
-        public override IBinder OnBind(Intent intent)
-        {
-            throw new NotImplementedException();
-        }
-    }
 }
 

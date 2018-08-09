@@ -25,7 +25,7 @@ namespace ConsoleApp1
         }
         static void Main(string[] args)
         {
-            Program.ParseStringToJsonObject();
+            Program.MessageWithSubmessage();
 
 
             Console.Read();
@@ -134,7 +134,8 @@ namespace ConsoleApp1
             {
                 { "Name", "张三" },
                 {"Age", 15 },
-                {"Height", 177 }
+                {"Height", 177 },
+                {"Other", null }
             };
             IPAddress iPAddress = IPAddress.Parse("192.168.1.1");
             JObject jObject_Message = new JObject

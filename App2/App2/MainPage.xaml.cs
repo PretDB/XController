@@ -13,6 +13,21 @@ using Android.OS;
 
 namespace XController
 {
+    public enum enum_Command
+    {
+        None = 100,
+        Stop =0,
+        Forward,
+        Backward,
+        LeftShift,
+        RightShift,
+        LeftRotate,
+        RightRotate,
+        IR = 10,
+        Sonic,
+        Track,
+        Light
+    };
 
     public enum enum_Device
     {
@@ -61,9 +76,9 @@ namespace XController
         private IPAddress IPAddress_Marker = IPAddress.Any;
         private IPAddress IPAddress_Local = IPAddress.Any;
 
-        private TcpClient tcpClient_Car0 = new TcpClient(new IPEndPoint(IPAddress.None, 6688));
-        private TcpClient tcpClient_Car1 = new TcpClient(new IPEndPoint(IPAddress.None, 6688));
-        private TcpClient tcpClient_Marker;
+        private TcpClient tcpClient_Car0 = new TcpClient();
+        private TcpClient tcpClient_Car1 = new TcpClient();
+        private TcpClient tcpClient_Marker = new TcpClient();
 
         private Thread thread_UDPListener;
 
@@ -106,35 +121,62 @@ namespace XController
 
         private void button_Forward_Pressed(object sender, EventArgs e)
         {
+            this.MessageEmitter(this.MessageAssembler(enum_Command.Forward));
         }
 
         private void button_Back_Pressed(object sender, EventArgs e)
         {
+            this.MessageEmitter(this.MessageAssembler(enum_Command.Backward));
         }
 
         private void button_LShift_Pressed(object sender, EventArgs e)
         {
-
+            this.MessageEmitter(this.MessageAssembler(enum_Command.LeftShift));
         }
 
         private void button_LRotate_Pressed(object sender, EventArgs e)
         {
-
+            this.MessageEmitter(this.MessageAssembler(enum_Command.LeftRotate));
         }
 
         private void button_RShift_Pressed(object sender, EventArgs e)
         {
-
+            this.MessageEmitter(this.MessageAssembler(enum_Command.RightShift));
         }
 
         private void button_RRotate_Pressed(object sender, EventArgs e)
         {
-
+            this.MessageEmitter(this.MessageAssembler(enum_Command.RightRotate));
         }
 
         private void button_Stop_Clicked(object sender, EventArgs e)
         {
             this.Toast("急停", false);
+            this.MessageEmitter(this.MessageAssembler(enum_Command.Stop));
+        }
+
+        private void button_IRAvoidance_Clicked(object sender, EventArgs e)
+        {
+            this.Toast("红外避障模式", false);
+            this.MessageEmitter(this.MessageAssembler(enum_Command.IR));
+        }
+
+        private void button_SonarAvoidance_Clicked(object sender, EventArgs e)
+        {
+            this.Toast("超声避障模式", false);
+            this.MessageEmitter(this.MessageAssembler(enum_Command.Sonic));
+        }
+
+        private void button_Track_Clicked(object sender, EventArgs e)
+        {
+            this.Toast("黑线寻迹模式", false);
+            this.MessageEmitter(this.MessageAssembler(enum_Command.Track));
+        }
+
+        private void button_LightTrack_Clicked(object sender, EventArgs e)
+        {
+            this.Toast("光跟踪模式", false);
+            this.MessageEmitter(this.MessageAssembler(enum_Command.Light));
         }
 
         private void picker_Target_SelectedIndexChanged(object sender, EventArgs e)
@@ -145,6 +187,11 @@ namespace XController
                 this.Device_CurrentTarget = result.device;
                 this.Toast("已选择控制" + result.ToString(), false);
             }
+        }
+
+        private void button_SetttingsConfirm_Clicked(object sender, EventArgs e)
+        {
+
         }
 
         private void Toast(string msg, bool isLong, bool isThread = false)
@@ -169,7 +216,7 @@ namespace XController
         {
             IPAddress localIP = Dns.GetHostAddresses(Dns.GetHostName()).First(ip => ip.AddressFamily == AddressFamily.InterNetwork);
             this.IPAddress_Local = localIP;
-            this.Toast("本机IP地址：" + localIP.ToString(), true);
+            this.Toast("本机IP地址：" + localIP.ToString(), false);
 
             this.udpClient = new UdpClient(this.Int_UDPPort);
 
@@ -185,7 +232,7 @@ namespace XController
         /// </summary>
         private void UDPListener()
         {
-            byte[] rawRecv;
+            byte[] rawRecv = new byte[1024];
             string encRecv;
             string tmp;
 
@@ -256,44 +303,65 @@ namespace XController
                 switch (device)
                 {
                     case enum_Device.Car0:
-                        this.tcpClient_Car0 = new TcpClient();
-                        this.tcpClient_Car0.Connect(iPEndPoint);
-                        if (this.tcpClient_Car0.Connected)
+                        if (iPEndPoint != this.tcpClient_Car0.Client.RemoteEndPoint)
                         {
-                            this.Toast("小车0已连接", false, true);
-                        }
-                        else
-                        {
-                            this.Toast("小车0连接失败", false, true);
+                            try
+                            {
+                                this.tcpClient_Car0 = new TcpClient();
+                                this.tcpClient_Car0.Connect(iPEndPoint);
+                            }
+                            catch (System.Reflection.TargetInvocationException e)
+                            {
+                                this.Toast(e.Source.ToString(), true, true);
+                            }
+
+                            if (this.tcpClient_Car0.Connected)
+                            {
+                                this.Toast("小车0已连接", false, true);
+                            }
+                            else
+                            {
+                                this.Toast("小车0连接失败", false, true);
+                            }
                         }
                         break;
 
                     case enum_Device.Car1:
-                        this.tcpClient_Car1 = new TcpClient();
-                        this.tcpClient_Car1.Connect(iPEndPoint);
-                        if (this.tcpClient_Car1.Connected)
+                        if (iPEndPoint != this.tcpClient_Car0.Client.RemoteEndPoint)
                         {
-                            this.Toast("小车1已连接", false, true);
-                        }
-                        else
-                        {
-                            this.Toast("小车1连接失败", false, true);
+                            this.tcpClient_Car1 = new TcpClient();
+                            this.tcpClient_Car1.Connect(iPEndPoint);
+
+                            this.tcpClient_Car1 = new TcpClient();
+                            this.tcpClient_Car1.Connect(iPEndPoint);
+                            if (this.tcpClient_Car1.Connected)
+                            {
+                                this.Toast("小车1已连接", false, true);
+                            }
+                            else
+                            {
+                                this.Toast("小车1连接失败", false, true);
+                            }
                         }
                         break;
 
-
                     case enum_Device.Marker:
-                        this.tcpClient_Marker = new TcpClient();
-                        this.tcpClient_Marker.Connect(iPEndPoint);
-                        if (this.tcpClient_Car1.Connected)
+                        if (iPEndPoint != this.tcpClient_Marker.Client.RemoteEndPoint)
                         {
-                            this.Toast("定位模块已连接", false, true);
-                        }
-                        else
-                        {
-                            this.Toast("定位装置连接失败", false, true);
-                        }
+                            this.tcpClient_Marker = new TcpClient();
+                            this.tcpClient_Marker.Connect(iPEndPoint);
 
+                            this.tcpClient_Marker = new TcpClient();
+                            this.tcpClient_Marker.Connect(iPEndPoint);
+                            if (this.tcpClient_Car1.Connected)
+                            {
+                                this.Toast("定位模块已连接", false, true);
+                            }
+                            else
+                            {
+                                this.Toast("定位装置连接失败", false, true);
+                            }
+                        }
                         break;
                     default:
                         break;
@@ -308,16 +376,17 @@ namespace XController
             {
                 this.Toast("参数获取异常，请重启车", true, true);
             }
+            catch (System.Reflection.TargetInvocationException e)
+            {
+                this.Toast(e.Source.ToString(), true, true);
+            }
             catch
             {
                 this.Toast("发生异常，不能联系到小车", true, true);
             }
         }
 
-        private void button_SetttingsConfirm_Clicked(object sender, EventArgs e)
-        {
-
-        }
+ 
 
         private void InitializeTarget()
         {
@@ -356,7 +425,7 @@ namespace XController
             }
         }
 
-        private JObject MessageAssembler(JObject subjson)
+        private JObject MessageAssembler(enum_Command command, JObject args = null)
         {
             JObject jObject_Message = new JObject
             {
@@ -364,19 +433,20 @@ namespace XController
                 {"FromIP", this.IPAddress_Local.ToString() },
                 {"FromID", 0 },
                 {"FromRole", "Controller" },
-                {"Msg", subjson }
+                {"Command", command.ToString() },
+                {"Args", args }
             };
             return jObject_Message;
         }
 
-        private void MessageEmitter(enum_Device dev, JObject message)
+        private void MessageEmitter(JObject message)
         {
             string msg = message.ToString();
             byte[] b = Encoding.UTF8.GetBytes(msg);
 
             TcpClient targetClient;
             NetworkStream stream;
-            switch (dev)
+            switch (this.Device_CurrentTarget)
             {
                 case enum_Device.Car0:
                     targetClient = this.tcpClient_Car0;
@@ -412,7 +482,7 @@ namespace XController
             }
             catch
             {
-                this.Toast("网络错误", false, false);
+                this.Toast("网络错误", false);
             }
 
         }
