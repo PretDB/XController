@@ -260,7 +260,7 @@ namespace XController
                     switch ((int)jObject["FromID"])
                     {
                         case 0:
-                            if (tmpIPAddress != this.IPAddress_Car0)
+                            if (tmpIPAddress.ToString() != this.IPAddress_Car0.ToString())
                             {
                                 this.Toast("小车0已发现，IP：" + tmp, false, true);
                                 this.IPAddress_Car0 = tmpIPAddress;
@@ -327,7 +327,7 @@ namespace XController
                         break;
 
                     case enum_Device.Car1:
-                        if (iPEndPoint != this.tcpClient_Car0.Client.RemoteEndPoint)
+                        if (iPEndPoint != this.tcpClient_Car1.Client.RemoteEndPoint)
                         {
                             this.tcpClient_Car1 = new TcpClient();
                             this.tcpClient_Car1.Connect(iPEndPoint);
@@ -370,7 +370,7 @@ namespace XController
             }
             catch (System.Net.Sockets.SocketException e)
             {
-                this.Toast("网络错误", true, true);
+                this.Toast("TCP网络错误", true, true);
             }
             catch (System.ArgumentNullException e)
             {
@@ -445,44 +445,45 @@ namespace XController
             byte[] b = Encoding.UTF8.GetBytes(msg);
 
             TcpClient targetClient;
+            IPEndPoint iPEndPoint;
             NetworkStream stream;
             switch (this.Device_CurrentTarget)
             {
                 case enum_Device.Car0:
                     targetClient = this.tcpClient_Car0;
+                    iPEndPoint = new IPEndPoint(this.IPAddress_Car0, this.Int_TCPPort);
                     break;
 
                 case enum_Device.Car1:
                     targetClient = this.tcpClient_Car1;
+                    iPEndPoint = new IPEndPoint(this.IPAddress_Car1, this.Int_TCPPort);
                     break;
 
                 case enum_Device.Marker:
                     targetClient = this.tcpClient_Marker;
+                    iPEndPoint = new IPEndPoint(this.IPAddress_Marker, this.Int_TCPPort);
                     break;
                 default:
                     targetClient = new TcpClient();
+                    iPEndPoint = new IPEndPoint(this.IPAddress_Local, this.Int_TCPPort);
                     break;
             }
 
             try
             {
-
-                if (targetClient.Connected)
+                if (targetClient.Connected == false)
                 {
-                    stream = targetClient.GetStream();
-                    stream.Write(b, 0, b.Length);
-                    stream.Flush();
-                    stream.Close();
+                    targetClient.Connect(iPEndPoint);
                 }
-                else
-                {
-                    this.Toast("未能连接到设备", false);
-                }
+                stream = targetClient.GetStream();
+                stream.Write(b, 0, b.Length);
+                stream.Flush();
+                //stream.Close();
 
             }
-            catch
+            catch(System.Exception e)
             {
-                this.Toast("网络错误", false);
+                this.Toast("网络错误, 未能发送指令:\n" + e.Message, false);
             }
 
         }
