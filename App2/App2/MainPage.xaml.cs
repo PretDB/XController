@@ -25,8 +25,8 @@ namespace XController
         RightRotate,
         IR = 10,
         Sonic,
-        Track,
-        Light
+        Light,
+        Track
     };
 
     public enum enum_Device
@@ -113,11 +113,6 @@ namespace XController
             InitializeNetwork();
             InitializeTarget();
 		}
-
-        private void button_Stop_Pressed(object sender, EventArgs e)
-        {
-            this.button_Stop_Clicked(sender, e);
-        }
 
         private void button_Forward_Pressed(object sender, EventArgs e)
         {
