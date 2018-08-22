@@ -27,7 +27,7 @@ namespace XController
         Sonic,
         Light,
         HumanDetect,
-        Fire,
+        FireDetect,
         SoundDetect,
         Track
     };
