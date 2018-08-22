@@ -26,6 +26,9 @@ namespace XController
         IR = 10,
         Sonic,
         Light,
+        HumanDetect,
+        Fire,
+        SoundDetect,
         Track
     };
 
