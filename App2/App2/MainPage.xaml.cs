@@ -29,7 +29,7 @@ namespace XController
         HumanDetect,
         FireDetect,
         SoundDetect,
-        Track
+        Track = 1000
     };
 
     public enum enum_Device
@@ -431,7 +431,7 @@ namespace XController
                 {"FromIP", this.IPAddress_Local.ToString() },
                 {"FromID", 0 },
                 {"FromRole", "Controller" },
-                {"Command", command.ToString() },
+                {"Command", (int)command },
                 {"Args", args }
             };
             return jObject_Message;
