@@ -63,10 +63,12 @@
                 <Frame Padding="5, 5, 5, 5">
                     <StackLayout x:Name="stackLayout_ModeSetting" Orientation="Vertical">
                         <Label x:Name="label_Mode" Text="模式设置"/>
+                        <Picker x:Name="picker_Mode" Title="模式设置" SelectedIndexChanged="picker_Mode_SelectedIndexChanged"/>
                         <Button x:Name="button_IRAvoidance" Text="红外避障" MinimumWidthRequest="100" Clicked="button_IRAvoidance_Clicked"/>
                         <Button x:Name="button_SonarAvoidance" Text="超声避障" MinimumWidthRequest="100" Clicked="button_SonarAvoidance_Clicked"/>
                         <Button x:Name="button_Track" Text="寻迹" MinimumWidthRequest="100" Clicked="button_Track_Clicked"/>
                         <Button x:Name="button_LightTrack" Text="光跟踪" MinimumWidthRequest="100" Clicked="button_LightTrack_Clicked"/>
+                        <Button x:Name="button_HumanDetect" Text="人活动检测" MinimumWidthRequest="100" Clicked="button_HumanDetect_Clicked"/>
 
                     </StackLayout>
                 </Frame>

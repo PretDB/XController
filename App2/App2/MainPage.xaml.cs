@@ -177,6 +177,12 @@ namespace XController
             this.MessageEmitter(this.MessageAssembler(enum_Command.Light));
         }
 
+        private void button_HumanDetect_Clicked(object sender, EventArgs e)
+        {
+            this.Toast("人活动检测", false);
+            this.MessageEmitter(this.MessageAssembler(enum_Command.HumanDetect));
+        }
+
         private void picker_Target_SelectedIndexChanged(object sender, EventArgs e)
         {
             if(picker_Target.SelectedIndex != 0)
@@ -483,6 +489,11 @@ namespace XController
             {
                 this.Toast("网络错误, 未能发送指令:\n" + e.Message, false);
             }
+
+        }
+
+        private void picker_Mode_SelectedIndexChanged(object sender, EventArgs e)
+        {
 
         }
 
