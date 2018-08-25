@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
 using Xamarin.Forms;
+using Xamarin.Essentials;
 using Newtonsoft.Json.Linq;
 using Android.OS;
 
@@ -42,6 +43,7 @@ namespace XController
 
 	public partial class MainPage : TabbedPage
 	{
+        public enum_Command lastCommand = enum_Command.Stop;
         public readonly string string_VideoUri = "/?action=stream";
         public readonly string string_NoDevice = @"
             <html>
@@ -115,6 +117,7 @@ namespace XController
 			InitializeComponent();
             InitializeNetwork();
             InitializeTarget();
+            InitializeGravity();
 		}
 
         private void button_Forward_Pressed(object sender, EventArgs e)
@@ -196,6 +199,85 @@ namespace XController
                 Target result = targets[picker_Target.SelectedIndex - 1];
                 this.Device_CurrentTarget = result.device;
                 this.Toast("已选择控制" + result.ToString(), false);
+            }
+        }
+
+        private void switchCell_GravityControl_OnChanged(object sender, ToggledEventArgs e)
+        {
+            if(switchCell_GravityControl.On == true)
+            {
+                Accelerometer.Start(SensorSpeed.UI);
+            }
+            else
+            {
+                Accelerometer.Stop();
+            }
+
+        }
+
+        private void Accelerometer_Changed(object sender, AccelerometerChangedEventArgs e)
+        {
+            enum_Command cmd = enum_Command.Stop;
+            var data = e.Reading.Acceleration;
+            this.label_Acc_X.Text = data.X.ToString();
+            this.label_Acc_Y.Text = data.Y.ToString();
+            this.label_Acc_Z.Text = data.Z.ToString();
+            if (Math.Abs(data.X) < 0.1f && data.Y < 0.2f)
+            {
+                cmd = enum_Command.Forward;
+            }
+            else if (Math.Abs(data.X) < 0.1f && data.Y > 0.61f)
+            {
+                cmd = enum_Command.Backward;
+            }
+            else if (data.X > 0.3f && data.Y > 0.4f)
+            {
+                cmd = enum_Command.LeftRotate;
+            }
+            else if (data.X < -0.3f && data.Y > 0.4f)
+            {
+                cmd = enum_Command.RightRotate;
+            }
+            else if (Math.Abs(data.Y) < 0.2f && data.X > 0.3f)
+            {
+                cmd = enum_Command.LeftShift;
+            }
+            else if (Math.Abs(data.Y) < 0.2f && data.X < -0.3f)
+            {
+                cmd = enum_Command.RightShift;
+            }
+            else
+            {
+                cmd = enum_Command.Stop;
+            }
+            if(cmd != this.lastCommand)
+            {
+                switch(cmd)
+                {
+                    case enum_Command.Stop:
+                        this.button_Stop_Clicked(sender, e);
+                        break;
+                    case enum_Command.Forward:
+                        this.button_Forward_Pressed(sender, e);
+                        break;
+                    case enum_Command.Backward:
+                        this.button_Back_Pressed(sender, e);
+                        break;
+                    case enum_Command.LeftRotate:
+                        this.button_LRotate_Pressed(sender, e);
+                        break;
+                    case enum_Command.RightRotate:
+                        this.button_RRotate_Pressed(sender, e);
+                        break;
+                    case enum_Command.LeftShift:
+                        this.button_LShift_Pressed(sender, e);
+                        break;
+                    case enum_Command.RightShift:
+                        this.button_RShift_Pressed(sender, e);
+                        break;
+                }
+                lastCommand = cmd;
+                Thread.Sleep(100);
             }
         }
 
@@ -454,6 +536,11 @@ namespace XController
             picker_Mode.Items.Add("人体活动检测模式");
             picker_Mode.Items.Add("重力感应模式");
             picker_Mode.SelectedIndex = 0;
+        }
+
+        private void InitializeGravity()
+        {
+            Accelerometer.ReadingChanged += this.Accelerometer_Changed;
         }
 
         private void ConfigureWebVideo(IPAddress targetIP)

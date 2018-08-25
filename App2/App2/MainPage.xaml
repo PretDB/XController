@@ -72,7 +72,16 @@
                         <Button x:Name="button_HumanDetect" Text="人活动检测" MinimumWidthRequest="100" Clicked="button_HumanDetect_Clicked"/>
                         -->
                         <Button x:Name="button_Fire" Text="反转灭火功能" Clicked="button_Fire_Clicked"/>
-
+                        <Label x:Name="label_Acc_X" Text="X"/>
+                        <Label x:Name="label_Acc_Y" Text="Y"/>
+                        <Label x:Name="label_Acc_Z" Text="Z"/>
+                        <TableView>
+                            <TableRoot>
+                                <TableSection>
+                                    <SwitchCell x:Name="switchCell_GravityControl" Text="重力控制" OnChanged="switchCell_GravityControl_OnChanged"/>
+                                </TableSection>
+                            </TableRoot>
+                        </TableView>
                     </StackLayout>
                 </Frame>
             </StackLayout>
