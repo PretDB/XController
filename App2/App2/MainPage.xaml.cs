@@ -183,6 +183,12 @@ namespace XController
             this.MessageEmitter(this.MessageAssembler(enum_Command.HumanDetect));
         }
 
+        private void button_Fire_Clicked(object sender, EventArgs e)
+        {
+            this.Toast("反转灭火功能", false);
+            this.MessageEmitter(this.MessageAssembler(enum_Command.FireDetect));
+        }
+
         private void picker_Target_SelectedIndexChanged(object sender, EventArgs e)
         {
             if(picker_Target.SelectedIndex != 0)
@@ -193,9 +199,32 @@ namespace XController
             }
         }
 
-        private void button_SetttingsConfirm_Clicked(object sender, EventArgs e)
+        private void picker_Mode_SelectedIndexChanged(object sender, EventArgs e)
         {
-
+            switch(picker_Mode.SelectedIndex)
+            {
+                case 1:
+                    this.button_IRAvoidance_Clicked(sender, e);
+                    break;
+                case 2:
+                    this.button_SonarAvoidance_Clicked(sender, e);
+                    break;
+                case 3:
+                    this.button_Track_Clicked(sender, e);
+                    break;
+                case 4:
+                    this.button_LightTrack_Clicked(sender, e);
+                    break;
+                case 5:
+                    this.button_HumanDetect_Clicked(sender, e);
+                    break;
+                case 6:
+                    // gravity here
+                    break;
+                default:
+                    //    this.button_Stop_Clicked(sender, e);
+                    break;
+            }
         }
 
         private void Toast(string msg, bool isLong, bool isThread = false)
@@ -416,6 +445,15 @@ namespace XController
                 picker_Target.Items.Add(target.ToString());
             }
             picker_Target.SelectedIndex = 0;
+
+            picker_Mode.Items.Add("遥控模式");
+            picker_Mode.Items.Add("红外避障模式");
+            picker_Mode.Items.Add("超声避障模式");
+            picker_Mode.Items.Add("寻迹模式");
+            picker_Mode.Items.Add("光跟踪模式");
+            picker_Mode.Items.Add("人体活动检测模式");
+            picker_Mode.Items.Add("重力感应模式");
+            picker_Mode.SelectedIndex = 0;
         }
 
         private void ConfigureWebVideo(IPAddress targetIP)
@@ -508,11 +546,10 @@ namespace XController
 
         }
 
-        private void picker_Mode_SelectedIndexChanged(object sender, EventArgs e)
+        private void button_SetttingsConfirm_Clicked(object sender, EventArgs e)
         {
 
         }
-
     }
 
 }
