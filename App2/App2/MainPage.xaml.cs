@@ -374,7 +374,22 @@ namespace XController
             }
             catch (System.Net.Sockets.SocketException e)
             {
-                this.Toast("TCP网络错误", true, true);
+                this.Toast("TCP网络错误，请重试", true, true);
+                switch(device)
+                {
+                    case enum_Device.Car0:
+                        this.tcpClient_Car0 = new TcpClient();
+                        this.tcpClient_Car0.Connect(iPEndPoint);
+                        break;
+                    case enum_Device.Car1:
+                        this.tcpClient_Car1 = new TcpClient();
+                        this.tcpClient_Car1.Connect(iPEndPoint);
+                        break;
+                    case enum_Device.Marker:
+                        this.tcpClient_Marker = new TcpClient();
+                        this.tcpClient_Marker.Connect(iPEndPoint);
+                        break;
+                }
             }
             catch (System.ArgumentNullException e)
             {
@@ -468,7 +483,7 @@ namespace XController
                     iPEndPoint = new IPEndPoint(this.IPAddress_Marker, this.Int_TCPPort);
                     break;
                 default:
-                    targetClient = new TcpClient();
+                    targetClient = new TcpClient(IPAddress.None.ToString(), this.Int_TCPPort);
                     iPEndPoint = new IPEndPoint(this.IPAddress_Local, this.Int_TCPPort);
                     break;
             }
@@ -487,7 +502,8 @@ namespace XController
             }
             catch(System.Exception e)
             {
-                this.Toast("网络错误, 未能发送指令:\n" + e.Message, false);
+                this.Toast("网络错误, 未能发送指令，请重试\n" + e.Message, false);
+                this.TCPConnectionManager(this.Device_CurrentTarget, iPEndPoint);
             }
 
         }
