@@ -177,6 +177,18 @@ namespace XController
             this.MessageEmitter(this.MessageAssembler(enum_Command.Light));
         }
 
+        private void button_HumanDetect_Clicked(object sender, EventArgs e)
+        {
+            this.Toast("人活动检测", false);
+            this.MessageEmitter(this.MessageAssembler(enum_Command.HumanDetect));
+        }
+
+        private void button_Fire_Clicked(object sender, EventArgs e)
+        {
+            this.Toast("反转灭火功能", false);
+            this.MessageEmitter(this.MessageAssembler(enum_Command.FireDetect));
+        }
+
         private void picker_Target_SelectedIndexChanged(object sender, EventArgs e)
         {
             if(picker_Target.SelectedIndex != 0)
@@ -187,9 +199,32 @@ namespace XController
             }
         }
 
-        private void button_SetttingsConfirm_Clicked(object sender, EventArgs e)
+        private void picker_Mode_SelectedIndexChanged(object sender, EventArgs e)
         {
-
+            switch(picker_Mode.SelectedIndex)
+            {
+                case 1:
+                    this.button_IRAvoidance_Clicked(sender, e);
+                    break;
+                case 2:
+                    this.button_SonarAvoidance_Clicked(sender, e);
+                    break;
+                case 3:
+                    this.button_Track_Clicked(sender, e);
+                    break;
+                case 4:
+                    this.button_LightTrack_Clicked(sender, e);
+                    break;
+                case 5:
+                    this.button_HumanDetect_Clicked(sender, e);
+                    break;
+                case 6:
+                    // gravity here
+                    break;
+                default:
+                    //    this.button_Stop_Clicked(sender, e);
+                    break;
+            }
         }
 
         private void Toast(string msg, bool isLong, bool isThread = false)
@@ -368,7 +403,22 @@ namespace XController
             }
             catch (System.Net.Sockets.SocketException e)
             {
-                this.Toast("TCP网络错误", true, true);
+                this.Toast("TCP网络错误，请重试", true, true);
+                switch(device)
+                {
+                    case enum_Device.Car0:
+                        this.tcpClient_Car0 = new TcpClient();
+                        this.tcpClient_Car0.Connect(iPEndPoint);
+                        break;
+                    case enum_Device.Car1:
+                        this.tcpClient_Car1 = new TcpClient();
+                        this.tcpClient_Car1.Connect(iPEndPoint);
+                        break;
+                    case enum_Device.Marker:
+                        this.tcpClient_Marker = new TcpClient();
+                        this.tcpClient_Marker.Connect(iPEndPoint);
+                        break;
+                }
             }
             catch (System.ArgumentNullException e)
             {
@@ -395,6 +445,15 @@ namespace XController
                 picker_Target.Items.Add(target.ToString());
             }
             picker_Target.SelectedIndex = 0;
+
+            picker_Mode.Items.Add("遥控模式");
+            picker_Mode.Items.Add("红外避障模式");
+            picker_Mode.Items.Add("超声避障模式");
+            picker_Mode.Items.Add("寻迹模式");
+            picker_Mode.Items.Add("光跟踪模式");
+            picker_Mode.Items.Add("人体活动检测模式");
+            picker_Mode.Items.Add("重力感应模式");
+            picker_Mode.SelectedIndex = 0;
         }
 
         private void ConfigureWebVideo(IPAddress targetIP)
@@ -462,7 +521,7 @@ namespace XController
                     iPEndPoint = new IPEndPoint(this.IPAddress_Marker, this.Int_TCPPort);
                     break;
                 default:
-                    targetClient = new TcpClient();
+                    targetClient = new TcpClient(IPAddress.None.ToString(), this.Int_TCPPort);
                     iPEndPoint = new IPEndPoint(this.IPAddress_Local, this.Int_TCPPort);
                     break;
             }
@@ -481,11 +540,16 @@ namespace XController
             }
             catch(System.Exception e)
             {
-                this.Toast("网络错误, 未能发送指令:\n" + e.Message, false);
+                this.Toast("网络错误, 未能发送指令，请重试\n" + e.Message, false);
+                this.TCPConnectionManager(this.Device_CurrentTarget, iPEndPoint);
             }
 
         }
 
+        private void button_SetttingsConfirm_Clicked(object sender, EventArgs e)
+        {
+
+        }
     }
 
 }
