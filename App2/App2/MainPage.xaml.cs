@@ -383,7 +383,7 @@ namespace XController
                             }
                             break;
                         case 1:
-                            if (tmpIPAddress != this.IPAddress_Car1)
+                            if (tmpIPAddress.ToString() != this.IPAddress_Car1.ToString())
                             {
                                 this.Toast("小车1已发现，IP：" + tmp, false, true);
                                 this.IPAddress_Car1 = tmpIPAddress;
@@ -444,11 +444,16 @@ namespace XController
                     case enum_Device.Car1:
                         if (iPEndPoint != this.tcpClient_Car1.Client.RemoteEndPoint)
                         {
-                            this.tcpClient_Car1 = new TcpClient();
-                            this.tcpClient_Car1.Connect(iPEndPoint);
+                            try
+                            {
+                                this.tcpClient_Car1 = new TcpClient();
+                                this.tcpClient_Car1.Connect(iPEndPoint);
+                            }
+                            catch(System.Reflection.TargetInvocationException e)
+                            {
+                                this.Toast(e.Source.ToString(), true, true);
+                            }
 
-                            this.tcpClient_Car1 = new TcpClient();
-                            this.tcpClient_Car1.Connect(iPEndPoint);
                             if (this.tcpClient_Car1.Connected)
                             {
                                 this.Toast("小车1已连接", false, true);

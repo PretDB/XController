@@ -79,7 +79,6 @@
     <PackageReference Include="Xamarin.Android.Support.v7.MediaRouter" Version="27.0.2" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Accel.cs" />
     <Compile Include="HeartBeatListener.cs" />
     <Compile Include="MakeToast.cs" />
     <Compile Include="MainActivity.cs" />
