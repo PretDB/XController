@@ -152,7 +152,6 @@ namespace XController
 
         private void button_Stop_Clicked(object sender, EventArgs e)
         {
-            this.Toast("急停", false);
             this.MessageEmitter(this.MessageAssembler(enum_Command.Stop));
         }
 

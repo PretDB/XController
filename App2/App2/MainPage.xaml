@@ -71,24 +71,19 @@
                         <Button x:Name="button_LightTrack" Text="光跟踪" MinimumWidthRequest="100" Clicked="button_LightTrack_Clicked"/>
                         <Button x:Name="button_HumanDetect" Text="人活动检测" MinimumWidthRequest="100" Clicked="button_HumanDetect_Clicked"/>
                         -->
-                        <Button x:Name="button_Fire" Text="反转灭火功能" Clicked="button_Fire_Clicked"/>
+                        <Button x:Name="button_Fire" Text="灭火" Clicked="button_Fire_Clicked"/>
                         <Label x:Name="label_Acc_X" Text="X"/>
                         <Label x:Name="label_Acc_Y" Text="Y"/>
                         <Label x:Name="label_Acc_Z" Text="Z"/>
-                        <TableView>
-                            <TableRoot>
-                                <TableSection>
-                                    <SwitchCell x:Name="switchCell_GravityControl" Text="重力控制" OnChanged="switchCell_GravityControl_OnChanged"/>
-                                </TableSection>
-                            </TableRoot>
-                        </TableView>
                     </StackLayout>
                 </Frame>
             </StackLayout>
 
 
             <Frame>
-                <Picker x:Name="picker_Target" Title="控制对象" SelectedIndexChanged="picker_Target_SelectedIndexChanged"/>
+                <StackLayout Orientation="Vertical">
+                    <Picker x:Name="picker_Target" Title="控制对象" SelectedIndexChanged="picker_Target_SelectedIndexChanged"/>
+                </StackLayout>
             </Frame>
         </StackLayout>
     </ContentPage>
@@ -104,23 +99,8 @@
 
         <TableView Intent="Settings">
             <TableRoot>
-                <TableSection Title="定位模块设置">
-                    <SwitchCell Text="光定位模块开关" On="True"/>
-                    <ViewCell>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="1*"/>
-                                <ColumnDefinition Width="4*"/>
-                            </Grid.ColumnDefinitions>
-                            <Label Text="亮度" Grid.Column="0" HorizontalTextAlignment="Center" VerticalTextAlignment="Center"/>
-                            <Slider Maximum="990" Minimum="1" Grid.Column="1"/>
-                        </Grid>
-                    </ViewCell>
-                </TableSection>
-                <TableSection>
-                    <ViewCell>
-                        <Button x:Name="button_SetttingsConfirm" Text="更新光定位模块设置" Clicked="button_SetttingsConfirm_Clicked" />
-                    </ViewCell>
+                <TableSection Title="其他设置">
+                    <SwitchCell x:Name="switchCell_GravityControl" Text="重力控制" OnChanged="switchCell_GravityControl_OnChanged"/>
                 </TableSection>
             </TableRoot>
         </TableView>
