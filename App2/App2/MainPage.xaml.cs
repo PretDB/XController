@@ -428,7 +428,7 @@ namespace XController
                 {"FromIP", this.IPAddress_Local.ToString() },
                 {"FromID", 0 },
                 {"FromRole", "Controller" },
-                {"Command", command.ToString() },
+                {"Command", (int)command },
                 {"Args", args }
             };
             return jObject_Message;
