@@ -11,6 +11,8 @@ using Xamarin.Forms;
 using Xamarin.Essentials;
 using Newtonsoft.Json.Linq;
 using Android.OS;
+using SkiaSharp;
+using SkiaSharp.Views.Forms;
 
 namespace XController
 {
@@ -85,6 +87,7 @@ namespace XController
         private TcpClient tcpClient_Car1 = new TcpClient();
         private TcpClient tcpClient_Marker = new TcpClient();
 
+
         private Thread thread_UDPListener;
 
         private ObservableCollection<Target> targets;
@@ -111,6 +114,7 @@ namespace XController
         }
         private enum_Device _currentTarget;
 
+        private Point point_CarCurrentLoc = new Point(0, 0);
 
 		public MainPage()
 		{
@@ -369,6 +373,21 @@ namespace XController
 
                 enum_Device device = enum_Device.None;
 
+                JObject jObject_Msg = null;
+                bool canSetLoc = true;
+                Point p = new Point(1.34, 3.44);
+
+                if (jObject["Msg"].HasValues)
+                {
+                    jObject_Msg = jObject["Msg"] as JObject;
+                    if (jObject_Msg.ContainsKey("position"))
+                    {
+                        JObject pos = jObject_Msg["position"] as JObject;
+                        p = new Point(double.Parse( pos["X"].ToString()), double.Parse( pos["Y"].ToString()));
+                        canSetLoc = true;
+                    }
+                }
+
                 if (jObject["FromRole"].ToString() == "car")
                 {
                     switch ((int)jObject["FromID"])
@@ -380,6 +399,16 @@ namespace XController
                                 this.IPAddress_Car0 = tmpIPAddress;
                                 device = enum_Device.Car0;
                             }
+                            if (this.Device_CurrentTarget == enum_Device.Car0)
+                            {
+                                if (canSetLoc)
+                                {
+                                    this.point_CarCurrentLoc = p;
+                                    //this.Toast("X:" + p.X.ToString(), false, true);
+                                    //this.label_Acc_X.Text = p.X.ToString();
+                                    //this.label_Acc_Y.Text = p.Y.ToString();
+                                }
+                            }
                             break;
                         case 1:
                             if (tmpIPAddress.ToString() != this.IPAddress_Car1.ToString())
@@ -387,6 +416,16 @@ namespace XController
                                 this.Toast("小车1已发现，IP：" + tmp, false, true);
                                 this.IPAddress_Car1 = tmpIPAddress;
                                 device = enum_Device.Car1;
+                            }
+                            if (this.Device_CurrentTarget == enum_Device.Car1)
+                            {
+                                if (canSetLoc)
+                                {
+                                    this.point_CarCurrentLoc = p;
+                                    //this.Toast("X:" + p.X.ToString(), false, true);
+                                    //this.label_Acc_X.Text = p.X.ToString();
+                                    //this.label_Acc_Y.Text = p.Y.ToString();
+                                }
                             }
                             break;
                     }
@@ -402,6 +441,7 @@ namespace XController
                     device = enum_Device.None;
                 }
                 this.TCPConnectionManager(device, new IPEndPoint(tmpIPAddress, this.Int_TCPPort));
+                this.skCanvas.InvalidateSurface();
             }
         }
 
@@ -558,17 +598,13 @@ namespace XController
                 {
                     Url = url0
                 };
-                this.webView_Map.Source = new UrlWebViewSource
-                {
-                    Url = url1
-                };
 
             }
             else
             {
                 var source = new HtmlWebViewSource();
                 source.Html = this.string_NoDevice;
-                this.webView_Map.Source = source;
+                // this.webView_Map.Source = source;
                 this.webView_Monitor.Source = source;
             }
         }
@@ -612,8 +648,17 @@ namespace XController
                     iPEndPoint = new IPEndPoint(this.IPAddress_Marker, this.Int_TCPPort);
                     break;
                 default:
-                    targetClient = new TcpClient(IPAddress.None.ToString(), this.Int_TCPPort);
-                    iPEndPoint = new IPEndPoint(this.IPAddress_Local, this.Int_TCPPort);
+                    // Code below is useless, what's more, it causes crashing when trying to
+                    // execute a command without control target selected.
+                    // However, disabling the code commented below will cause
+                    // "targetClient" used but not assigned. 
+                    // So I have to return this function, after all, with an
+                    // invalid device, nothing will be executed.
+
+                    //targetClient = new TcpClient(IPAddress.None.ToString(), this.Int_TCPPort);
+                    //iPEndPoint = new IPEndPoint(this.IPAddress_Local, this.Int_TCPPort);
+
+                    return;
                     break;
             }
 
@@ -629,6 +674,14 @@ namespace XController
                 //stream.Close();
 
             }
+            catch(System.Net.Sockets.SocketException e)
+            {
+                this.Toast("似乎没有网络连接，可以重启小车和APP，并选择控制对象试试", true);
+            }
+            catch(System.ObjectDisposedException e)
+            {
+                this.Toast("似乎没有网络连接", false, false);
+            }
             catch(System.Exception e)
             {
                 this.Toast("网络错误, 未能发送指令，请重试\n" + e.Message, false);
@@ -640,6 +693,31 @@ namespace XController
         private void button_SetttingsConfirm_Clicked(object sender, EventArgs e)
         {
 
+        }
+
+        private void SKCanvasView_PaintSurface(object sender, SKPaintSurfaceEventArgs e)
+        {
+            SKImageInfo info = e.Info;
+            SKSurface surface = e.Surface;
+            SKCanvas canvas = surface.Canvas;
+
+            canvas.Clear();
+
+            SKPaint paint = new SKPaint
+            {
+                Style = SKPaintStyle.Stroke,
+                Color = Color.Red.ToSKColor(),
+                StrokeWidth = 10
+            };
+            //canvas.DrawCircle(info.Width / 2, info.Height / 2, 20, paint);
+
+            paint.Style = SKPaintStyle.Fill;
+            paint.Color = SKColors.Blue;
+            canvas.DrawCircle((float)(info.Width * this.point_CarCurrentLoc.X), (float)(info.Height * this.point_CarCurrentLoc.Y), 20, paint);
+        }
+
+        private void TapGestureRecognizer_Tapped(object sender, EventArgs e)
+        {
         }
     }
 

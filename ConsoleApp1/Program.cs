@@ -25,7 +25,7 @@ namespace ConsoleApp1
         }
         static void Main(string[] args)
         {
-            Program.MessageWithSubmessage();
+            Program.ParseStringToJsonObject();
 
 
             Console.Read();
@@ -120,32 +120,58 @@ namespace ConsoleApp1
         {
             string string_RawJsonString = Program.MessageWithSubmessage();
 
-            dynamic jObject = JObject.Parse(string_RawJsonString) as dynamic;
+            JObject jObject = JObject.Parse(string_RawJsonString) as dynamic;
+            Console.WriteLine("Original json content: ");
             Console.WriteLine(jObject);
-            IPAddress ip = IPAddress.Parse(jObject.FromIP.ToString());
-            Console.WriteLine(ip.ToString());
-            Console.WriteLine("Name" + jObject.Msg.Name);
+
+            Console.WriteLine("original has msg? " + jObject["Msg"].HasValues);
+            if(jObject["Msg"].HasValues)
+            {
+                Console.WriteLine("original Msg: " + jObject["Msg"]);
+                Console.WriteLine("Msg type: " + jObject["Msg"].GetType());
+
+                JObject msg = jObject["Msg"] as JObject;
+                Console.WriteLine("Msg: ");
+                Console.WriteLine(msg);
+                Console.WriteLine("msg has positin? " + msg.ContainsKey("position"));
+                Console.WriteLine("Msg has position? " + msg["position"].HasValues);
+                if(msg["position"].HasValues)
+                {
+                    JObject pos = msg["position"] as JObject;
+                    Console.WriteLine("tag: " + pos["tag"] + "\tX: " + (double)pos["X"] + "\tY: " + (double)pos["Y"]);
+                }
+            }
+            else
+            {
+                JObject msg = null;
+                Console.WriteLine("msg is null:"  + (msg == null));
+            }
+
             Console.Read();
         }
 
         static string MessageWithSubmessage()
         {
-            JObject jObject = new JObject
+            JObject loc = new JObject
             {
-                { "Name", "张三" },
-                {"Age", 15 },
-                {"Height", 177 },
-                {"Other", null }
+                {"tag", "0" },
+                {"X", 1.908 },
+                {"Y", 3.44 }
+            };
+            JObject msg = new JObject
+            {
+                {"position", loc }
             };
             IPAddress iPAddress = IPAddress.Parse("192.168.1.1");
             JObject jObject_Message = new JObject
             {
-                {"Type" , "instruction"},
+                {"Type" , "heartbeat"},
                 {"FromIP",  iPAddress.ToString()},
                 {"FromID", 0 },
-                {"FromRole", "Controller" },
-                {"Msg", jObject }
+                {"FromRole", "Car" },
+                {"Msg", msg }
             };
+            Console.WriteLine("String:");
             Console.WriteLine(jObject_Message.ToString());
             return jObject_Message.ToString();
         }
