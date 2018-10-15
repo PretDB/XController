@@ -706,7 +706,7 @@ namespace XController
                     paint.Color = SKColors.Red;
                     break;
             }
-            canvas.DrawCircle((float)(info.Width * this.point_CarCurrentLoc.X), (float)(info.Height * this.point_CarCurrentLoc.Y), 10, paint);
+            canvas.DrawCircle((float)(info.Width * this.point_CarCurrentLoc.X), (float)(info.Height * this.point_CarCurrentLoc.Y), 25, paint);
         }
 
         private void TapGestureRecognizer_Tapped(object sender, EventArgs e)
