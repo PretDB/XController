@@ -529,22 +529,7 @@ namespace XController
             }
             catch (System.Net.Sockets.SocketException e)
             {
-                this.Toast("TCP网络错误，请重试", true, true);
-                switch(device)
-                {
-                    case enum_Device.Car0:
-                        this.tcpClient_Car0 = new TcpClient();
-                        this.tcpClient_Car0.Connect(iPEndPoint);
-                        break;
-                    case enum_Device.Car1:
-                        this.tcpClient_Car1 = new TcpClient();
-                        this.tcpClient_Car1.Connect(iPEndPoint);
-                        break;
-                    case enum_Device.Marker:
-                        this.tcpClient_Marker = new TcpClient();
-                        this.tcpClient_Marker.Connect(iPEndPoint);
-                        break;
-                }
+                this.Toast("指令流错误，请重启小车试试", true, true);
             }
             catch (System.ArgumentNullException e)
             {
@@ -556,7 +541,7 @@ namespace XController
             }
             catch
             {
-                this.Toast("发生异常，不能联系到小车", true, true);
+                this.Toast("未知异常", true, true);
             }
         }
 
@@ -712,8 +697,16 @@ namespace XController
             //canvas.DrawCircle(info.Width / 2, info.Height / 2, 20, paint);
 
             paint.Style = SKPaintStyle.Fill;
-            paint.Color = SKColors.Blue;
-            canvas.DrawCircle((float)(info.Width * this.point_CarCurrentLoc.X), (float)(info.Height * this.point_CarCurrentLoc.Y), 20, paint);
+            switch(this.Device_CurrentTarget)
+            {
+                case enum_Device.Car0:
+                    paint.Color = SKColors.Blue;
+                    break;
+                case enum_Device.Car1:
+                    paint.Color = SKColors.Red;
+                    break;
+            }
+            canvas.DrawCircle((float)(info.Width * this.point_CarCurrentLoc.X), (float)(info.Height * this.point_CarCurrentLoc.Y), 10, paint);
         }
 
         private void TapGestureRecognizer_Tapped(object sender, EventArgs e)
