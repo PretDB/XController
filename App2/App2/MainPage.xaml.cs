@@ -45,6 +45,8 @@ namespace XController
 
 	public partial class MainPage : TabbedPage
 	{
+		public float speed = 0.2;
+		public bool fireDetect = false;
         public enum_Command lastCommand = enum_Command.Stop;
         public readonly string string_VideoUri = "/?action=stream";
         public readonly string string_NoDevice = @"
@@ -596,6 +598,11 @@ namespace XController
 
         private JObject MessageAssembler(enum_Command command, JObject args = null)
         {
+			JObject arg = new JObject
+			{
+				{ "Speed", this.speed },
+				{ "Fire", this.fireDetect }
+			};
             JObject jObject_Message = new JObject
             {
                 {"Type" , "instruction"},
@@ -603,7 +610,7 @@ namespace XController
                 {"FromID", 0 },
                 {"FromRole", "Controller" },
                 {"Command", (int)command },
-                {"Args", args }
+                {"Args", arg }
             };
             return jObject_Message;
         }
