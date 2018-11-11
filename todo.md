@@ -4,4 +4,9 @@ Add multi-client control. Currently, only one client can control the specific ca
 1. connect the specific car via tcp connection.
 2. send command, get status.
 3. close connection.
-The upon procedure will be done in MessageEmitter, too.
+The upon procedure has been done in MessageEmitter, too.
+
+[ ] add speed and fire in args in controll pack
+
+
+
