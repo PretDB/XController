@@ -361,9 +361,9 @@ namespace XController
                 enum_Device device = enum_Device.None;
 
                 JObject jObject_Msg = null;
-                bool canSetLoc = true;
+                bool canSetLoc = false;
                 bool canSetOri = false;
-                Point p = new Point(1.34, 3.44);
+                Point p = new Point(this.point_CarCurrentLoc.X, this.point_CarCurrentLoc.Y);
                 double o = 0.0;
 
                 if (jObject["Msg"].HasValues)
