@@ -45,7 +45,8 @@ namespace XController
 
 	public partial class MainPage : TabbedPage
 	{
-		public float speed = 0.2;
+		public double speed = 0.2;
+        public double orientation = 0;
 		public bool fireDetect = false;
         public enum_Command lastCommand = enum_Command.Stop;
         public readonly string string_VideoUri = "/?action=stream";
@@ -117,6 +118,8 @@ namespace XController
         private enum_Device _currentTarget;
 
         private Point point_CarCurrentLoc = new Point(0, 0);
+        private Queue<SKPoint> points_historicalLoc0 = new Queue<SKPoint>(10);
+        private Queue<SKPoint> points_historicalLoc1 = new Queue<SKPoint>(10);
 
 		public MainPage()
 		{
@@ -207,26 +210,10 @@ namespace XController
             }
         }
 
-        private void switchCell_GravityControl_OnChanged(object sender, ToggledEventArgs e)
-        {
-            if(switchCell_GravityControl.On == true)
-            {
-                Accelerometer.Start(SensorSpeed.UI);
-            }
-            else
-            {
-                Accelerometer.Stop();
-            }
-
-        }
-
         private void Accelerometer_Changed(object sender, AccelerometerChangedEventArgs e)
         {
             enum_Command cmd = enum_Command.Stop;
             var data = e.Reading.Acceleration;
-            this.label_Acc_X.Text = data.X.ToString();
-            this.label_Acc_Y.Text = data.Y.ToString();
-            this.label_Acc_Z.Text = data.Z.ToString();
             if (Math.Abs(data.X) < 0.1f && data.Y < 0.2f)
             {
                 cmd = enum_Command.Forward;
@@ -305,8 +292,6 @@ namespace XController
                 case 5:
                     this.button_HumanDetect_Clicked(sender, e);
                     break;
-                case 6:
-                    // gravity here
                     break;
                 default:
                     //    this.button_Stop_Clicked(sender, e);
@@ -377,7 +362,9 @@ namespace XController
 
                 JObject jObject_Msg = null;
                 bool canSetLoc = true;
+                bool canSetOri = false;
                 Point p = new Point(1.34, 3.44);
+                double o = 0.0;
 
                 if (jObject["Msg"].HasValues)
                 {
@@ -387,6 +374,11 @@ namespace XController
                         JObject pos = jObject_Msg["position"] as JObject;
                         p = new Point(double.Parse( pos["X"].ToString()), double.Parse( pos["Y"].ToString()));
                         canSetLoc = true;
+                    }
+                    if(jObject_Msg.ContainsKey("orientation"))
+                    {
+                        o = double.Parse(jObject_Msg["orientation"].ToString());
+                        canSetOri = true;
                     }
                 }
 
@@ -406,9 +398,15 @@ namespace XController
                                 if (canSetLoc)
                                 {
                                     this.point_CarCurrentLoc = p;
-                                    //this.Toast("X:" + p.X.ToString(), false, true);
-                                    //this.label_Acc_X.Text = p.X.ToString();
-                                    //this.label_Acc_Y.Text = p.Y.ToString();
+                                    if (this.points_historicalLoc0.Count > 10)
+                                    {
+                                        this.points_historicalLoc0.Dequeue();
+                                    }
+                                    this.points_historicalLoc0.Enqueue(new SKPoint((float)p.X, (float)p.Y));
+                                }
+                                if(canSetOri)
+                                {
+                                    this.orientation = o;
                                 }
                             }
                             break;
@@ -424,9 +422,15 @@ namespace XController
                                 if (canSetLoc)
                                 {
                                     this.point_CarCurrentLoc = p;
-                                    //this.Toast("X:" + p.X.ToString(), false, true);
-                                    //this.label_Acc_X.Text = p.X.ToString();
-                                    //this.label_Acc_Y.Text = p.Y.ToString();
+                                    if (this.points_historicalLoc1.Count > 10)
+                                    {
+                                        this.points_historicalLoc1.Dequeue();
+                                    }
+                                    this.points_historicalLoc1.Enqueue(new SKPoint((float)p.X, (float)p.Y));
+                                }
+                                if(canSetOri)
+                                {
+                                    this.orientation = o;
                                 }
                             }
                             break;
@@ -552,7 +556,7 @@ namespace XController
         private void InitializeTarget()
         {
             this.targets = Data.targets;
-            picker_Target.Items.Add("请选择设备");
+            picker_Target.Items.Add("设备");
             foreach(var target in this.targets)
             {
                 picker_Target.Items.Add(target.ToString());
@@ -565,7 +569,6 @@ namespace XController
             picker_Mode.Items.Add("寻迹模式");
             picker_Mode.Items.Add("光跟踪模式");
             picker_Mode.Items.Add("人体活动检测模式");
-            picker_Mode.Items.Add("重力感应模式");
             picker_Mode.SelectedIndex = 0;
         }
 
@@ -601,7 +604,7 @@ namespace XController
 			JObject arg = new JObject
 			{
 				{ "Speed", this.speed },
-				{ "Fire", this.fireDetect }
+				{ "Fire", this.fireDetect },
 			};
             JObject jObject_Message = new JObject
             {
@@ -639,6 +642,9 @@ namespace XController
                     targetClient = this.tcpClient_Marker;
                     iPEndPoint = new IPEndPoint(this.IPAddress_Marker, this.Int_TCPPort);
                     break;
+                case enum_Device.None:
+                    return;
+
                 default:
                     // Code below is useless, what's more, it causes crashing when trying to
                     // execute a command without control target selected.
@@ -651,7 +657,6 @@ namespace XController
                     //iPEndPoint = new IPEndPoint(this.IPAddress_Local, this.Int_TCPPort);
 
                     return;
-                    break;
             }
 
             try
@@ -693,31 +698,88 @@ namespace XController
             SKSurface surface = e.Surface;
             SKCanvas canvas = surface.Canvas;
 
+            Point[] s = { new Point(1.5 / 6 * info.Width, 1.25 / 4 * info.Height),
+                          new Point(1.5 / 6 * info.Width, 2.75 / 4 * info.Height),
+                          new Point(3.0 / 6 * info.Width, 1.25 / 4 * info.Height),
+                          new Point(3.0 / 6 * info.Width, 2.75 / 4 * info.Height),
+                          new Point(4.5 / 6 * info.Width, 1.25 / 4 * info.Height),
+                          new Point(4.5 / 6 * info.Width, 2.75 / 4 * info.Height) };
+            string indicator = "V";
+
             canvas.Clear();
 
+            // Draw base station
             SKPaint paint = new SKPaint
             {
-                Style = SKPaintStyle.Stroke,
-                Color = Color.Red.ToSKColor(),
-                StrokeWidth = 10
+                Style = SKPaintStyle.Fill,
+                Color = SKColors.DarkGray,
+                StrokeWidth = 4,
+                TextSize = info.Height / 5,
+                TextAlign = SKTextAlign.Center,
+                StrokeCap = SKStrokeCap.Round,
+                StrokeJoin = SKStrokeJoin.Round,
+                FakeBoldText = false
             };
-            //canvas.DrawCircle(info.Width / 2, info.Height / 2, 20, paint);
+            foreach(Point p in s)
+            {
+                canvas.DrawCircle((float)p.X, (float)p.Y, 20, paint);
+            }
 
-            paint.Style = SKPaintStyle.Fill;
+            // Prepare to draw marker
+            SKPoint[] points;
             switch(this.Device_CurrentTarget)
             {
-                case enum_Device.Car0:
-                    paint.Color = SKColors.Blue;
-                    break;
                 case enum_Device.Car1:
                     paint.Color = SKColors.Red;
+                    points = this.points_historicalLoc1.ToArray();
+                    break;
+                default:
+                    paint.Color = SKColors.Blue;
+                    points = this.points_historicalLoc0.ToArray();
                     break;
             }
-            canvas.DrawCircle((float)(info.Width * this.point_CarCurrentLoc.X), (float)(info.Height * this.point_CarCurrentLoc.Y), 25, paint);
+            SKRect sizeRect = new SKRect();
+            double textWidth = paint.MeasureText(indicator, ref sizeRect);
+            for(int a = 0; a < points.Length; a++)
+            {
+                points[a].X = info.Width * points[a].X;
+                points[a].Y = info.Height * points[a].Y;
+            }
+            canvas.DrawPoints(SKPointMode.Polygon, points, paint);
+
+            SKPoint pp = new SKPoint();
+            pp.X = (float)(info.Width * this.point_CarCurrentLoc.X);
+            pp.Y = (float)(info.Height * this.point_CarCurrentLoc.Y);
+            //pp.X = (float)(pp.X * Math.Cos(this.orientation) + pp.Y * Math.Sin(this.orientation));
+            //pp.Y = (float)(-pp.X * Math.Sin(this.orientation) + pp.Y * Math.Cos(this.orientation));
+            canvas.RotateDegrees((float)this.orientation, pp.X, pp.Y);
+            canvas.DrawText(indicator, pp.X, pp.Y, paint);
+            // For test
+            //canvas.RotateDegrees((float)this.orientation, (float)(info.Width / 2), (float)(info.Width / 2));
+            //canvas.DrawText(indicator, (float)(info.Width / 2), (float)(info.Width / 2 - sizeRect.Height / 2), paint);
+            canvas.RotateDegrees((float)(-this.orientation), pp.X, pp.Y);
         }
 
-        private void TapGestureRecognizer_Tapped(object sender, EventArgs e)
+        private void slider_speed_ValueChanged(object sender, ValueChangedEventArgs e)
         {
+            this.speed = this.slider_speed.Value;
+        }
+
+        private void switch_Fire_Toggled(object sender, ToggledEventArgs e)
+        {
+            this.fireDetect = this.switch_Fire.IsToggled;
+        }
+
+        private void switch_Gravity_Toggled(object sender, ToggledEventArgs e)
+        {
+            if(this.switch_Gravity.IsToggled)           // Gravity On
+            {
+                Accelerometer.Start(SensorSpeed.UI);
+            }
+            else
+            {
+                Accelerometer.Stop();
+            }
         }
     }
 

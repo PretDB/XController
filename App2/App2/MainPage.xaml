@@ -81,25 +81,34 @@
                         <Button x:Name="button_Track" Text="寻迹" MinimumWidthRequest="100" Clicked="button_Track_Clicked"/>
                         <Button x:Name="button_LightTrack" Text="光跟踪" MinimumWidthRequest="100" Clicked="button_LightTrack_Clicked"/>
                         <Button x:Name="button_HumanDetect" Text="人活动检测" MinimumWidthRequest="100" Clicked="button_HumanDetect_Clicked"/>
-                        -->
                         <Button x:Name="button_Fire" Text="灭火" Clicked="button_Fire_Clicked"/>
-                        <Label x:Name="label_Acc_X" Text="X"/>
-                        <Label x:Name="label_Acc_Y" Text="Y"/>
-                        <Label x:Name="label_Acc_Z" Text="Z"/>
+                        -->
+                        <StackLayout x:Name="stackLayout_Fire" Orientation="Horizontal">
+                            <Label x:Name="label_Fire" Text="灭火"/>
+                            <Switch x:Name="switch_Fire" Toggled="switch_Fire_Toggled"/>
+                        </StackLayout>
+                        <StackLayout x:Name="stackLayout_Gravity" Orientation="Horizontal">
+                            <Label x:Name="label_Gravity" Text="重力"/>
+                            <Switch x:Name="switch_Gravity" Toggled="switch_Gravity_Toggled"/>
+                        </StackLayout>
+                        <Label x:Name="label_Target" Text="控制对象"/>
+                        <Picker x:Name="picker_Target" Title="控制对象" SelectedIndexChanged="picker_Target_SelectedIndexChanged"/>
                     </StackLayout>
                 </Frame>
             </StackLayout>
 
 
             <Frame>
-                <StackLayout Orientation="Vertical">
-                    <Picker x:Name="picker_Target" Title="控制对象" SelectedIndexChanged="picker_Target_SelectedIndexChanged"/>
+                <StackLayout Orientation="Horizontal">
+                    <Label x:Name="label_speed" Text="{Binding Source={x:Reference slider_speed}, Path=Value,StringFormat='速度：{0:0.00}'}"/>
+                    <Slider x:Name="slider_speed" Minimum="0.0" Maximum="1.0" Value="0.2" ValueChanged="slider_speed_ValueChanged" HorizontalOptions="FillAndExpand"/>
                 </StackLayout>
             </Frame>
         </StackLayout>
     </ContentPage>
 
 
+    <!--
     <ContentPage x:Name="contentPage_Settings" Title="设置">
         <ContentPage.Padding>
             <OnPlatform x:TypeArguments="Thickness">
@@ -116,5 +125,6 @@
             </TableRoot>
         </TableView>
     </ContentPage>
+    -->
 
 </TabbedPage>

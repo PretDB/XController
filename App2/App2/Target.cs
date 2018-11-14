@@ -29,7 +29,7 @@ namespace XController
                         this.string_TargetName = "Marker";
                         break;
                     default:
-                        this.string_TargetName = "Unknown";
+                        this.string_TargetName = "None";
                         break;
                 }
                 this._device = value;
@@ -60,6 +60,10 @@ namespace XController
         {
             targets = new ObservableCollection<Target>()
             {
+                new Target()
+                {
+                    device = enum_Device.None
+                },
                 new Target()
                 {
                     device = enum_Device.Car0
