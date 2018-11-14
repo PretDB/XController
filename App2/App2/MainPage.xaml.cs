@@ -730,12 +730,12 @@ namespace XController
             switch(this.Device_CurrentTarget)
             {
                 case enum_Device.Car1:
-                    paint.Color = SKColors.Red;
                     points = this.points_historicalLoc1.ToArray();
+                    paint.Color = SKColors.HotPink;
                     break;
                 default:
-                    paint.Color = SKColors.Blue;
                     points = this.points_historicalLoc0.ToArray();
+                    paint.Color = SKColors.LightBlue;
                     break;
             }
             SKRect sizeRect = new SKRect();
@@ -746,6 +746,15 @@ namespace XController
                 points[a].Y = info.Height * points[a].Y;
             }
             canvas.DrawPoints(SKPointMode.Polygon, points, paint);
+            switch(this.Device_CurrentTarget)
+            {
+                case enum_Device.Car1:
+                    paint.Color = SKColors.Red;
+                    break;
+                default:
+                    paint.Color = SKColors.Blue;
+                    break;
+            }
 
             SKPoint pp = new SKPoint();
             pp.X = (float)(info.Width * this.point_CarCurrentLoc.X);
