@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Net;
+using System.Net.Http;
 using System.Net.Sockets;
 using Xamarin.Forms;
 using Xamarin.Essentials;
@@ -50,6 +51,7 @@ namespace XController
 		public bool fireDetect = false;
         public enum_Command lastCommand = enum_Command.Stop;
         public readonly string string_VideoUri = "/?action=stream";
+        public readonly string string_controllerUri = "/controller";
         public readonly string string_NoDevice = @"
             <html>
                 <title>Device Not Found</title>
@@ -89,6 +91,7 @@ namespace XController
         private TcpClient tcpClient_Car0 = new TcpClient();
         private TcpClient tcpClient_Car1 = new TcpClient();
         private TcpClient tcpClient_Marker = new TcpClient();
+        private HttpClient httpClient = new HttpClient();
 
 
         private Thread thread_UDPListener;
@@ -292,7 +295,6 @@ namespace XController
                 case 5:
                     this.button_HumanDetect_Clicked(sender, e);
                     break;
-                    break;
                 default:
                     //    this.button_Stop_Clicked(sender, e);
                     break;
@@ -446,112 +448,9 @@ namespace XController
                 {
                     device = enum_Device.None;
                 }
-                this.TCPConnectionManager(device, new IPEndPoint(tmpIPAddress, this.Int_TCPPort));
                 this.skCanvas.InvalidateSurface();
             }
         }
-
-        /// <summary>
-        /// Managing the TCP Connection
-        /// </summary>
-        /// <param name="device"></param>
-        /// <param name="iPEndPoint"></param>
-        private void TCPConnectionManager(enum_Device device, IPEndPoint iPEndPoint)
-        {
-            try
-            {
-                switch (device)
-                {
-                    case enum_Device.Car0:
-                        if (iPEndPoint != this.tcpClient_Car0.Client.RemoteEndPoint)
-                        {
-                            try
-                            {
-                                this.tcpClient_Car0 = new TcpClient();
-                                this.tcpClient_Car0.Connect(iPEndPoint);
-                            }
-                            catch (System.Reflection.TargetInvocationException e)
-                            {
-                                this.Toast(e.Source.ToString(), true, true);
-                            }
-
-                            if (this.tcpClient_Car0.Connected)
-                            {
-                                this.Toast("小车0已连接", false, true);
-                            }
-                            else
-                            {
-                                this.Toast("小车0连接失败", false, true);
-                            }
-                        }
-                        break;
-
-                    case enum_Device.Car1:
-                        if (iPEndPoint != this.tcpClient_Car1.Client.RemoteEndPoint)
-                        {
-                            try
-                            {
-                                this.tcpClient_Car1 = new TcpClient();
-                                this.tcpClient_Car1.Connect(iPEndPoint);
-                            }
-                            catch(System.Reflection.TargetInvocationException e)
-                            {
-                                this.Toast(e.Source.ToString(), true, true);
-                            }
-
-                            if (this.tcpClient_Car1.Connected)
-                            {
-                                this.Toast("小车1已连接", false, true);
-                            }
-                            else
-                            {
-                                this.Toast("小车1连接失败", false, true);
-                            }
-                        }
-                        break;
-
-                    case enum_Device.Marker:
-                        if (iPEndPoint != this.tcpClient_Marker.Client.RemoteEndPoint)
-                        {
-                            this.tcpClient_Marker = new TcpClient();
-                            this.tcpClient_Marker.Connect(iPEndPoint);
-
-                            this.tcpClient_Marker = new TcpClient();
-                            this.tcpClient_Marker.Connect(iPEndPoint);
-                            if (this.tcpClient_Car1.Connected)
-                            {
-                                this.Toast("定位模块已连接", false, true);
-                            }
-                            else
-                            {
-                                this.Toast("定位装置连接失败", false, true);
-                            }
-                        }
-                        break;
-                    default:
-                        break;
-
-                }
-            }
-            catch (System.Net.Sockets.SocketException e)
-            {
-                this.Toast("指令流错误，请重启小车试试", true, true);
-            }
-            catch (System.ArgumentNullException e)
-            {
-                this.Toast("参数获取异常，请重启车", true, true);
-            }
-            catch (System.Reflection.TargetInvocationException e)
-            {
-                this.Toast(e.Source.ToString(), true, true);
-            }
-            catch
-            {
-                this.Toast("未知异常", true, true);
-            }
-        }
-
- 
 
         private void InitializeTarget()
         {
@@ -582,7 +481,6 @@ namespace XController
             if(targetIP != IPAddress.Any)
             {
                 string url0 = "http://" + targetIP.ToString() + ":8080" + this.string_VideoUri;
-                string url1 = "http://" + targetIP.ToString() + ":8081" + this.string_VideoUri;
 
                 this.webView_Monitor.Source = new UrlWebViewSource
                 {
@@ -623,24 +521,20 @@ namespace XController
             string msg = message.ToString();
             byte[] b = Encoding.UTF8.GetBytes(msg);
 
-            TcpClient targetClient;
-            IPEndPoint iPEndPoint;
-            NetworkStream stream;
+            string uri = "http://";
+            string ip = "";
             switch (this.Device_CurrentTarget)
             {
                 case enum_Device.Car0:
-                    targetClient = this.tcpClient_Car0;
-                    iPEndPoint = new IPEndPoint(this.IPAddress_Car0, this.Int_TCPPort);
+                    ip = this.IPAddress_Car0.ToString();
                     break;
 
                 case enum_Device.Car1:
-                    targetClient = this.tcpClient_Car1;
-                    iPEndPoint = new IPEndPoint(this.IPAddress_Car1, this.Int_TCPPort);
+                    ip = this.IPAddress_Car1.ToString();
                     break;
 
                 case enum_Device.Marker:
-                    targetClient = this.tcpClient_Marker;
-                    iPEndPoint = new IPEndPoint(this.IPAddress_Marker, this.Int_TCPPort);
+                    ip = this.IPAddress_Marker.ToString();
                     break;
                 case enum_Device.None:
                     return;
@@ -661,28 +555,13 @@ namespace XController
 
             try
             {
-                if (targetClient.Connected == false)
-                {
-                    targetClient.Connect(iPEndPoint);
-                }
-                stream = targetClient.GetStream();
-                stream.Write(b, 0, b.Length);
-                stream.Flush();
-                //stream.Close();
-
-            }
-            catch(System.Net.Sockets.SocketException e)
-            {
-                this.Toast("似乎没有网络连接，可以重启小车和APP，并选择控制对象试试", true);
-            }
-            catch(System.ObjectDisposedException e)
-            {
-                this.Toast("似乎没有网络连接", false, false);
+                uri = "http://" + ip + ":" + this.Int_TCPPort.ToString() + this.string_controllerUri;
+                string requestData = message.ToString();
+                this.httpClient.PostAsync(uri, new StringContent(requestData, Encoding.UTF8, "application/json"));
             }
             catch(System.Exception e)
             {
                 this.Toast("网络错误, 未能发送指令，请重试\n" + e.Message, false);
-                this.TCPConnectionManager(this.Device_CurrentTarget, iPEndPoint);
             }
 
         }
