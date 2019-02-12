@@ -46,8 +46,10 @@ namespace XController
 
 	public partial class MainPage : TabbedPage
 	{
-		public double speed = 0.2;
+		public double speed = 0.24;
         public double orientation = 0;
+        private System.Numerics.Vector3 vector3_AccFiltered;
+        private float accSensitivity = 1;
 		public bool fireDetect = false;
         public enum_Command lastCommand = enum_Command.Stop;
         public readonly string string_VideoUri = "/?action=stream";
@@ -124,6 +126,7 @@ namespace XController
         private Queue<SKPoint> points_historicalLoc0 = new Queue<SKPoint>(10);
         private Queue<SKPoint> points_historicalLoc1 = new Queue<SKPoint>(10);
 
+
 		public MainPage()
 		{
 			InitializeComponent();
@@ -134,36 +137,43 @@ namespace XController
 
         private void button_Forward_Pressed(object sender, EventArgs e)
         {
+            this.picker_Mode.SelectedIndex = 0;
             this.MessageEmitter(this.MessageAssembler(enum_Command.Forward));
         }
 
         private void button_Back_Pressed(object sender, EventArgs e)
         {
+            this.picker_Mode.SelectedIndex = 0;
             this.MessageEmitter(this.MessageAssembler(enum_Command.Backward));
         }
 
         private void button_LShift_Pressed(object sender, EventArgs e)
         {
+            this.picker_Mode.SelectedIndex = 0;
             this.MessageEmitter(this.MessageAssembler(enum_Command.LeftShift));
         }
 
         private void button_LRotate_Pressed(object sender, EventArgs e)
         {
+            this.picker_Mode.SelectedIndex = 0;
             this.MessageEmitter(this.MessageAssembler(enum_Command.LeftRotate));
         }
 
         private void button_RShift_Pressed(object sender, EventArgs e)
         {
+            this.picker_Mode.SelectedIndex = 0;
             this.MessageEmitter(this.MessageAssembler(enum_Command.RightShift));
         }
 
         private void button_RRotate_Pressed(object sender, EventArgs e)
         {
+            this.picker_Mode.SelectedIndex = 0;
             this.MessageEmitter(this.MessageAssembler(enum_Command.RightRotate));
         }
 
         private void button_Stop_Clicked(object sender, EventArgs e)
         {
+            this.picker_Mode.SelectedIndex = 0;
             this.MessageEmitter(this.MessageAssembler(enum_Command.Stop));
         }
 
@@ -203,12 +213,6 @@ namespace XController
             this.MessageEmitter(this.MessageAssembler(enum_Command.SoundDetect));
         }
 
-        private void button_Fire_Clicked(object sender, EventArgs e)
-        {
-            this.Toast("反转灭火功能", false);
-            this.MessageEmitter(this.MessageAssembler(enum_Command.FireDetect));
-        }
-
         private void picker_Target_SelectedIndexChanged(object sender, EventArgs e)
         {
             if(picker_Target.SelectedIndex != 0)
@@ -223,27 +227,31 @@ namespace XController
         {
             enum_Command cmd = enum_Command.Stop;
             var data = e.Reading.Acceleration;
-            if (Math.Abs(data.X) < 0.1f && data.Y < 0.2f)
+            this.vector3_AccFiltered.X = this.accSensitivity * data.X + (1 - this.accSensitivity) * this.vector3_AccFiltered.X;
+            this.vector3_AccFiltered.Y = this.accSensitivity * data.Y + (1 - this.accSensitivity) * this.vector3_AccFiltered.Y;
+            this.vector3_AccFiltered.Z = this.accSensitivity * data.Z + (1 - this.accSensitivity) * this.vector3_AccFiltered.Z;
+
+            if (Math.Abs(this.vector3_AccFiltered.X) < 0.1f && this.vector3_AccFiltered.Y < 0.2f)
             {
                 cmd = enum_Command.Forward;
             }
-            else if (Math.Abs(data.X) < 0.1f && data.Y > 0.61f)
+            else if (Math.Abs(this.vector3_AccFiltered.X) < 0.1f && this.vector3_AccFiltered.Y > 0.61f)
             {
                 cmd = enum_Command.Backward;
             }
-            else if (data.X > 0.3f && data.Y > 0.4f)
+            else if (this.vector3_AccFiltered.X > 0.3f && this.vector3_AccFiltered.Y > 0.4f)
             {
                 cmd = enum_Command.LeftRotate;
             }
-            else if (data.X < -0.3f && data.Y > 0.4f)
+            else if (this.vector3_AccFiltered.X < -0.3f && this.vector3_AccFiltered.Y > 0.4f)
             {
                 cmd = enum_Command.RightRotate;
             }
-            else if (Math.Abs(data.Y) < 0.2f && data.X > 0.3f)
+            else if (Math.Abs(this.vector3_AccFiltered.Y) < 0.2f && this.vector3_AccFiltered.X > 0.3f)
             {
                 cmd = enum_Command.LeftShift;
             }
-            else if (Math.Abs(data.Y) < 0.2f && data.X < -0.3f)
+            else if (Math.Abs(this.vector3_AccFiltered.Y) < 0.2f && this.vector3_AccFiltered.X < -0.3f)
             {
                 cmd = enum_Command.RightShift;
             }
@@ -277,7 +285,7 @@ namespace XController
                         this.button_RShift_Pressed(sender, e);
                         break;
                 }
-                lastCommand = cmd;
+                this.lastCommand = cmd;
                 Thread.Sleep(100);
             }
         }
@@ -660,12 +668,20 @@ namespace XController
 
         private void slider_speed_ValueChanged(object sender, ValueChangedEventArgs e)
         {
-            this.speed = this.slider_speed.Value;
+            this.speed = this.slider_speed.Value * 0.3;
+            this.MessageEmitter(this.MessageAssembler(enum_Command.None));
+        }
+
+        private void slider_sensitivity_ValueChanged(object sender, ValueChangedEventArgs e)
+        {
+            this.accSensitivity = (float)(this.slider_sensitivity.Value * 0.3);
         }
 
         private void switch_Fire_Toggled(object sender, ToggledEventArgs e)
         {
             this.fireDetect = this.switch_Fire.IsToggled;
+            this.MessageEmitter(this.MessageAssembler(enum_Command.None));
+            this.Toast("灭火功能：" + (this.fireDetect ? "开" : "关"), false);
         }
 
         private void switch_Gravity_Toggled(object sender, ToggledEventArgs e)

@@ -97,18 +97,16 @@
                 </Frame>
             </StackLayout>
 
-
             <Frame>
                 <StackLayout Orientation="Horizontal">
                     <Label x:Name="label_speed" Text="{Binding Source={x:Reference slider_speed}, Path=Value,StringFormat='速度：{0:0.00}'}"/>
-                    <Slider x:Name="slider_speed" Minimum="0.0" Maximum="1.0" Value="0.2" ValueChanged="slider_speed_ValueChanged" HorizontalOptions="FillAndExpand"/>
+                    <Slider x:Name="slider_speed" Minimum="0.0" Maximum="1.0" Value="0.8" ValueChanged="slider_speed_ValueChanged" HorizontalOptions="FillAndExpand"/>
                 </StackLayout>
             </Frame>
         </StackLayout>
     </ContentPage>
 
 
-    <!--
     <ContentPage x:Name="contentPage_Settings" Title="设置">
         <ContentPage.Padding>
             <OnPlatform x:TypeArguments="Thickness">
@@ -117,6 +115,7 @@
         </ContentPage.Padding>
 
 
+        <!--
         <TableView Intent="Settings">
             <TableRoot>
                 <TableSection Title="其他设置">
@@ -124,7 +123,15 @@
                 </TableSection>
             </TableRoot>
         </TableView>
+        -->
+        <StackLayout>
+            <Frame>
+                <StackLayout Orientation="Horizontal">
+                    <Label x:Name="label_sensitivity" Text="{Binding Source={x:Reference slider_sensitivity}, Path=Value,StringFormat='重力灵敏度：{0:0.00}'}"/>
+                    <Slider x:Name="slider_sensitivity" Minimum="0.01" Maximum="1.0" Value="0.8" ValueChanged="slider_sensitivity_ValueChanged" HorizontalOptions="FillAndExpand"/>
+                </StackLayout>
+            </Frame>
+        </StackLayout>
     </ContentPage>
-    -->
 
 </TabbedPage>
