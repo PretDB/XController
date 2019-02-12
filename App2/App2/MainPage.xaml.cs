@@ -197,6 +197,12 @@ namespace XController
             this.MessageEmitter(this.MessageAssembler(enum_Command.HumanDetect));
         }
 
+        private void button_SoundDetect_Clicked(object sender, EventArgs e)
+        {
+            this.Toast("声音检测", false);
+            this.MessageEmitter(this.MessageAssembler(enum_Command.SoundDetect));
+        }
+
         private void button_Fire_Clicked(object sender, EventArgs e)
         {
             this.Toast("反转灭火功能", false);
@@ -294,6 +300,9 @@ namespace XController
                     break;
                 case 5:
                     this.button_HumanDetect_Clicked(sender, e);
+                    break;
+                case 6:
+                    this.button_SoundDetect_Clicked(sender, e);
                     break;
                 default:
                     //    this.button_Stop_Clicked(sender, e);
@@ -468,6 +477,7 @@ namespace XController
             picker_Mode.Items.Add("寻迹模式");
             picker_Mode.Items.Add("光跟踪模式");
             picker_Mode.Items.Add("人体活动检测模式");
+            picker_Mode.Items.Add("声音检测模式");
             picker_Mode.SelectedIndex = 0;
         }
 
