@@ -219,6 +219,7 @@ namespace XController
             {
                 Target result = targets[picker_Target.SelectedIndex - 1];
                 this.Device_CurrentTarget = result.device;
+                this.label_connected.Text = this.Device_CurrentTarget.ToString();
                 this.Toast("已选择控制" + result.ToString(), false);
             }
         }
@@ -466,6 +467,8 @@ namespace XController
                     device = enum_Device.None;
                 }
                 this.skCanvas.InvalidateSurface();
+                this.label_XLoc.Text = this.point_CarCurrentLoc.X.ToString();
+                this.label_YLoc.Text = this.point_CarCurrentLoc.Y.ToString();
             }
         }
 
