@@ -7,10 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XController.Android", "App2
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "XController", "App2\App2\XController.shproj", "{8129D2AA-FED0-4786-8B58-347825321934}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp1", "ConsoleApp1\ConsoleApp1.csproj", "{B7F33066-D304-4718-BB54-3911F1CDB3C6}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CarLower", "CarLower\CarLower.vcxproj", "{600EBD04-C34C-4FC6-9C81-9423300AC931}"
-EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		App2\App2\App2.projitems*{06652ccc-0594-4bd5-b719-ed4919e721dc}*SharedItemsImports = 4
@@ -51,34 +47,6 @@ Global
 		{06652CCC-0594-4BD5-B719-ED4919E721DC}.Release|x86.ActiveCfg = Release|Any CPU
 		{06652CCC-0594-4BD5-B719-ED4919E721DC}.Release|x86.Build.0 = Release|Any CPU
 		{06652CCC-0594-4BD5-B719-ED4919E721DC}.Release|x86.Deploy.0 = Release|Any CPU
-		{B7F33066-D304-4718-BB54-3911F1CDB3C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B7F33066-D304-4718-BB54-3911F1CDB3C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B7F33066-D304-4718-BB54-3911F1CDB3C6}.Debug|ARM.ActiveCfg = Debug|Any CPU
-		{B7F33066-D304-4718-BB54-3911F1CDB3C6}.Debug|ARM.Build.0 = Debug|Any CPU
-		{B7F33066-D304-4718-BB54-3911F1CDB3C6}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{B7F33066-D304-4718-BB54-3911F1CDB3C6}.Debug|x64.Build.0 = Debug|Any CPU
-		{B7F33066-D304-4718-BB54-3911F1CDB3C6}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{B7F33066-D304-4718-BB54-3911F1CDB3C6}.Debug|x86.Build.0 = Debug|Any CPU
-		{B7F33066-D304-4718-BB54-3911F1CDB3C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B7F33066-D304-4718-BB54-3911F1CDB3C6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B7F33066-D304-4718-BB54-3911F1CDB3C6}.Release|ARM.ActiveCfg = Release|Any CPU
-		{B7F33066-D304-4718-BB54-3911F1CDB3C6}.Release|ARM.Build.0 = Release|Any CPU
-		{B7F33066-D304-4718-BB54-3911F1CDB3C6}.Release|x64.ActiveCfg = Release|Any CPU
-		{B7F33066-D304-4718-BB54-3911F1CDB3C6}.Release|x64.Build.0 = Release|Any CPU
-		{B7F33066-D304-4718-BB54-3911F1CDB3C6}.Release|x86.ActiveCfg = Release|Any CPU
-		{B7F33066-D304-4718-BB54-3911F1CDB3C6}.Release|x86.Build.0 = Release|Any CPU
-		{600EBD04-C34C-4FC6-9C81-9423300AC931}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{600EBD04-C34C-4FC6-9C81-9423300AC931}.Debug|ARM.ActiveCfg = Debug|Win32
-		{600EBD04-C34C-4FC6-9C81-9423300AC931}.Debug|x64.ActiveCfg = Debug|x64
-		{600EBD04-C34C-4FC6-9C81-9423300AC931}.Debug|x64.Build.0 = Debug|x64
-		{600EBD04-C34C-4FC6-9C81-9423300AC931}.Debug|x86.ActiveCfg = Debug|Win32
-		{600EBD04-C34C-4FC6-9C81-9423300AC931}.Debug|x86.Build.0 = Debug|Win32
-		{600EBD04-C34C-4FC6-9C81-9423300AC931}.Release|Any CPU.ActiveCfg = Release|Win32
-		{600EBD04-C34C-4FC6-9C81-9423300AC931}.Release|ARM.ActiveCfg = Release|Win32
-		{600EBD04-C34C-4FC6-9C81-9423300AC931}.Release|x64.ActiveCfg = Release|x64
-		{600EBD04-C34C-4FC6-9C81-9423300AC931}.Release|x64.Build.0 = Release|x64
-		{600EBD04-C34C-4FC6-9C81-9423300AC931}.Release|x86.ActiveCfg = Release|Win32
-		{600EBD04-C34C-4FC6-9C81-9423300AC931}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
