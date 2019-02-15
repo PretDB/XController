@@ -20,7 +20,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="$(MSBuildThisFileDirectory)IHeartbeatListener.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Target.cs" />
   </ItemGroup>
 </Project>
