@@ -101,9 +101,9 @@
                     <Label x:Name="label_connected" Text="" />
                     <Label Text="位置   "/>
                     <Label Text="X: "/>
-                    <Label x:Name="label_XLoc" Text=""/>
+                    <Label x:Name="label_XLoc" Text="{Binding local:point_CarCurrentLoc.X.ToString()}"/>
                     <Label Text="Y: "/>
-                    <Label x:Name="label_YLoc" Text=""/>
+                    <Label x:Name="label_YLoc" Text="{Binding local:point_CarCurrentLoc.Y.ToString()}" />
                 </StackLayout>
             </Frame>
         </StackLayout>

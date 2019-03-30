@@ -122,7 +122,7 @@ namespace XController
         }
         private enum_Device _currentTarget;
 
-        private Point point_CarCurrentLoc = new Point(0, 0);
+        public Point point_CarCurrentLoc = new Point(0, 0);
         private Queue<SKPoint> points_historicalLoc0 = new Queue<SKPoint>(10);
         private Queue<SKPoint> points_historicalLoc1 = new Queue<SKPoint>(10);
 
@@ -467,8 +467,8 @@ namespace XController
                     device = enum_Device.None;
                 }
                 this.skCanvas.InvalidateSurface();
-                this.label_XLoc.Text = this.point_CarCurrentLoc.X.ToString();
-                this.label_YLoc.Text = this.point_CarCurrentLoc.Y.ToString();
+                // this.label_XLoc.Text = this.point_CarCurrentLoc.X.ToString();
+                // this.label_YLoc.Text = this.point_CarCurrentLoc.Y.ToString();
             }
         }
 
@@ -667,6 +667,8 @@ namespace XController
             //canvas.RotateDegrees((float)this.orientation, (float)(info.Width / 2), (float)(info.Width / 2));
             //canvas.DrawText(indicator, (float)(info.Width / 2), (float)(info.Width / 2 - sizeRect.Height / 2), paint);
             canvas.RotateDegrees((float)(-this.orientation), pp.X, pp.Y);
+            this.label_XLoc.Text = this.point_CarCurrentLoc.X.ToString();
+            this.label_YLoc.Text = this.point_CarCurrentLoc.Y.ToString();
         }
 
         private void slider_speed_ValueChanged(object sender, ValueChangedEventArgs e)
