@@ -87,6 +87,7 @@ namespace XController
 
         private IPAddress IPAddress_Car0 = IPAddress.Any;
         private IPAddress IPAddress_Car1 = IPAddress.Any;
+        private IPAddress[] carIPAddresses = new IPAddress[2];
         private IPAddress IPAddress_Marker = IPAddress.Any;
         private IPAddress IPAddress_Local = IPAddress.Any;
 
@@ -123,6 +124,7 @@ namespace XController
         private enum_Device _currentTarget;
 
         public Point point_CarCurrentLoc = new Point(0, 0);
+        private Queue<SKPoint>[] points_historicalLoc = new Queue<SKPoint>[2];
         private Queue<SKPoint> points_historicalLoc0 = new Queue<SKPoint>(10);
         private Queue<SKPoint> points_historicalLoc1 = new Queue<SKPoint>(10);
 
@@ -339,6 +341,11 @@ namespace XController
 
         private void InitializeNetwork()
         {
+            this.carIPAddresses[0] = IPAddress.Any;
+            this.carIPAddresses[1] = IPAddress.Any;
+            this.points_historicalLoc[0] = new Queue<SKPoint>(10);
+            this.points_historicalLoc[1] = new Queue<SKPoint>(10);
+
             IPAddress localIP = Dns.GetHostAddresses(Dns.GetHostName()).First(ip => ip.AddressFamily == AddressFamily.InterNetwork);
             this.IPAddress_Local = localIP;
             this.Toast("本机IP地址：" + localIP.ToString(), false);
@@ -359,7 +366,6 @@ namespace XController
         {
             byte[] rawRecv = new byte[1024];
             string encRecv;
-            string tmp;
 
             IPEndPoint sender = new IPEndPoint(IPAddress.Any, 0);
 
@@ -369,106 +375,72 @@ namespace XController
                 encRecv = Encoding.UTF8.GetString(rawRecv);
 
                 JObject jObject = JObject.Parse(encRecv);
-                if (jObject["Type"].ToString() != "heartbeat")
+                if(jObject.ContainsKey("Type"))
                 {
-                    Thread.Sleep(300);
-                    continue;
-                }
-                // Get sender's IP Address
-                tmp = jObject["FromIP"].ToString();
-                IPAddress tmpIPAddress = IPAddress.Parse(tmp);
-
-                enum_Device device = enum_Device.None;
-
-                JObject jObject_Msg = null;
-                bool canSetLoc = false;
-                bool canSetOri = false;
-                Point p = new Point(this.point_CarCurrentLoc.X, this.point_CarCurrentLoc.Y);
-                double o = 0.0;
-
-                if (jObject["Msg"].HasValues)
-                {
-                    jObject_Msg = jObject["Msg"] as JObject;
-                    if (jObject_Msg.ContainsKey("position"))
+                    int? id = null;
+                    id = (int)jObject["FromID"];
+                    if(id is null)
                     {
-                        JObject pos = jObject_Msg["position"] as JObject;
-                        p = new Point(double.Parse( pos["X"].ToString()), double.Parse( pos["Y"].ToString()));
-                        canSetLoc = true;
+                        Thread.Sleep(300);
+                        continue;
                     }
-                    if(jObject_Msg.ContainsKey("orientation"))
-                    {
-                        o = double.Parse(jObject_Msg["orientation"].ToString());
-                        canSetOri = true;
-                    }
-                }
 
-                if (jObject["FromRole"].ToString() == "car")
-                {
-                    switch ((int)jObject["FromID"])
+                    string type = jObject["Type"].ToString();
+                    switch(type)
                     {
-                        case 0:
-                            if (tmpIPAddress.ToString() != this.IPAddress_Car0.ToString())
+                        case "heartbeat":
+                            try
                             {
-                                this.Toast("小车0已发现，IP：" + tmp, false, true);
-                                this.IPAddress_Car0 = tmpIPAddress;
-                                device = enum_Device.Car0;
-                            }
-                            if (this.Device_CurrentTarget == enum_Device.Car0)
-                            {
-                                if (canSetLoc)
+                                if(this.carIPAddresses[id ?? 99].Address != sender.Address.Address)
                                 {
-                                    this.point_CarCurrentLoc = p;
-                                    if (this.points_historicalLoc0.Count > 10)
-                                    {
-                                        this.points_historicalLoc0.Dequeue();
-                                    }
-                                    this.points_historicalLoc0.Enqueue(new SKPoint((float)p.X, (float)p.Y));
+                                    this.Toast($"小车{id}已发现，IP：{sender.Address.ToString()}", false, true);
+                                    this.carIPAddresses[id ?? 99] = sender.Address;
                                 }
-                                if(canSetOri)
+                            }
+                            catch(IndexOutOfRangeException)
+                            {
+                                Thread.Sleep(300);
+                                continue;
+                            }
+                            break;
+                        case "locate":
+                            if(jObject["Msg"].HasValues)
+                            {
+                                JObject msg = jObject["Msg"] as JObject;
+                                if(msg.ContainsKey("position"))
                                 {
-                                    this.orientation = o;
+                                    try
+                                    {
+                                        if (this.Device_CurrentTarget == (enum_Device)((id + 1) ?? 3))
+                                        {
+                                            Point gotP = new Point(double.Parse(msg["position"]["X"].ToString()), double.Parse(msg["position"]["Y"].ToString()));
+                                            this.point_CarCurrentLoc = gotP;
+                                            if(this.points_historicalLoc[id ?? 3].Count > 10)
+                                            {
+                                                this.points_historicalLoc[id ?? 3].Dequeue();
+                                            }
+                                            this.points_historicalLoc[id ?? 3].Enqueue(new SKPoint((float)gotP.X, (float)gotP.Y));
+                                        }
+                                    }
+                                    catch(IndexOutOfRangeException)
+                                    {
+                                        Thread.Sleep(300);
+                                        continue;
+                                    }
+                                }
+                                if(msg.ContainsKey("orientation"))
+                                {
+                                    this.orientation = double.Parse(msg["orientation"].ToString());
                                 }
                             }
                             break;
-                        case 1:
-                            if (tmpIPAddress.ToString() != this.IPAddress_Car1.ToString())
-                            {
-                                this.Toast("小车1已发现，IP：" + tmp, false, true);
-                                this.IPAddress_Car1 = tmpIPAddress;
-                                device = enum_Device.Car1;
-                            }
-                            if (this.Device_CurrentTarget == enum_Device.Car1)
-                            {
-                                if (canSetLoc)
-                                {
-                                    this.point_CarCurrentLoc = p;
-                                    if (this.points_historicalLoc1.Count > 10)
-                                    {
-                                        this.points_historicalLoc1.Dequeue();
-                                    }
-                                    this.points_historicalLoc1.Enqueue(new SKPoint((float)p.X, (float)p.Y));
-                                }
-                                if(canSetOri)
-                                {
-                                    this.orientation = o;
-                                }
-                            }
-                            break;
+                        default:
+                            Thread.Sleep(300);
+                            continue;
                     }
                 }
-                else if (jObject["FromRole"].ToString() == "marker" && tmpIPAddress != this.IPAddress_Marker)
-                {
-                    this.Toast("定位装置已发现，IP：" + tmp, false, true);
-                    this.IPAddress_Marker = tmpIPAddress;
-                    device = enum_Device.Marker;
-                }
-                else
-                {
-                    device = enum_Device.None;
-                }
+
                 this.skCanvas.InvalidateSurface();
-                // this.label_XLoc.Text = this.point_CarCurrentLoc.X.ToString();
-                // this.label_YLoc.Text = this.point_CarCurrentLoc.Y.ToString();
             }
         }
 
@@ -630,11 +602,11 @@ namespace XController
             switch(this.Device_CurrentTarget)
             {
                 case enum_Device.Car1:
-                    points = this.points_historicalLoc1.ToArray();
+                    points = this.points_historicalLoc[1].ToArray();
                     paint.Color = SKColors.HotPink;
                     break;
                 default:
-                    points = this.points_historicalLoc0.ToArray();
+                    points = this.points_historicalLoc[0].ToArray();
                     paint.Color = SKColors.LightBlue;
                     break;
             }
