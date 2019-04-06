@@ -52,7 +52,7 @@ namespace XController
         private float accSensitivity = 1;
 		public bool fireDetect = false;
         public enum_Command lastCommand = enum_Command.Stop;
-        public readonly string string_VideoUri = "/?action=stream";
+        public readonly string string_VideoUri = "/stream_simple.html";
         public readonly string string_controllerUri = "/controller";
         public readonly string string_NoDevice = @"
             <html>
@@ -109,15 +109,13 @@ namespace XController
             set
             {
                 this._currentTarget = value;
-                switch(value)
+                try
                 {
-                    case enum_Device.Car0:
-                        this.ConfigureWebVideo(this.IPAddress_Car0);
-                        break;
-
-                    case enum_Device.Car1:
-                        this.ConfigureWebVideo(this.IPAddress_Car1);
-                        break;
+                    this.ConfigureWebVideo(this.carIPAddresses[(int)value - 1]);
+                }
+                catch(IndexOutOfRangeException)
+                {
+                    return;
                 }
             }
         }
@@ -519,11 +517,11 @@ namespace XController
             switch (this.Device_CurrentTarget)
             {
                 case enum_Device.Car0:
-                    ip = this.IPAddress_Car0.ToString();
+                    ip = this.carIPAddresses[0].ToString();
                     break;
 
                 case enum_Device.Car1:
-                    ip = this.IPAddress_Car1.ToString();
+                    ip = this.carIPAddresses[1].ToString();
                     break;
 
                 case enum_Device.Marker:
