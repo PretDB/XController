@@ -490,9 +490,18 @@ namespace XController
 
         private JObject MessageAssembler(enum_Command command, JObject args = null)
         {
+            double speed = this.speed;
+            if( command == enum_Command.LeftRotate || command == enum_Command.RightRotate)
+            {
+                speed = this.speed * 0.6;
+            }
+            else if (command == enum_Command.LeftShift || command == enum_Command.RightShift)
+            {
+                speed = this.speed * 1.2;
+            }
 			JObject arg = new JObject
 			{
-				{ "Speed", this.speed },
+				{ "Speed", speed },
 				{ "Fire", this.fireDetect },
 			};
             JObject jObject_Message = new JObject
@@ -568,12 +577,12 @@ namespace XController
             SKSurface surface = e.Surface;
             SKCanvas canvas = surface.Canvas;
 
-            Point[] s = { new Point(1.5 / 6 * info.Width, 1.25 / 4 * info.Height),
-                          new Point(1.5 / 6 * info.Width, 2.75 / 4 * info.Height),
+            Point[] s = { new Point(2.0 / 6 * info.Width, 1.25 / 4 * info.Height),
+                          new Point(2.0 / 6 * info.Width, 2.75 / 4 * info.Height),
                           new Point(3.0 / 6 * info.Width, 1.25 / 4 * info.Height),
                           new Point(3.0 / 6 * info.Width, 2.75 / 4 * info.Height),
-                          new Point(4.5 / 6 * info.Width, 1.25 / 4 * info.Height),
-                          new Point(4.5 / 6 * info.Width, 2.75 / 4 * info.Height) };
+                          new Point(4.0 / 6 * info.Width, 1.25 / 4 * info.Height),
+                          new Point(4.0 / 6 * info.Width, 2.75 / 4 * info.Height) };
             string indicator = "V";
 
             canvas.Clear();
