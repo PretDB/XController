@@ -46,6 +46,7 @@ namespace XController
 
 	public partial class MainPage : TabbedPage
 	{
+        public bool isDebugMode = false;
 		public double speed = 0.24;
         public double orientation = 0;
         private System.Numerics.Vector3 vector3_AccFiltered;
@@ -85,15 +86,10 @@ namespace XController
 
         private UdpClient udpClient;
 
-        private IPAddress IPAddress_Car0 = IPAddress.Any;
-        private IPAddress IPAddress_Car1 = IPAddress.Any;
         private IPAddress[] carIPAddresses = new IPAddress[2];
-        private IPAddress IPAddress_Marker = IPAddress.Any;
+        private IPAddress[] locatorIPAddresses = new IPAddress[2];
         private IPAddress IPAddress_Local = IPAddress.Any;
 
-        private TcpClient tcpClient_Car0 = new TcpClient();
-        private TcpClient tcpClient_Car1 = new TcpClient();
-        private TcpClient tcpClient_Marker = new TcpClient();
         private HttpClient httpClient = new HttpClient();
 
 
@@ -123,8 +119,6 @@ namespace XController
 
         public Point point_CarCurrentLoc = new Point(0, 0);
         private Queue<SKPoint>[] points_historicalLoc = new Queue<SKPoint>[2];
-        private Queue<SKPoint> points_historicalLoc0 = new Queue<SKPoint>(10);
-        private Queue<SKPoint> points_historicalLoc1 = new Queue<SKPoint>(10);
 
 
 		public MainPage()
@@ -341,6 +335,8 @@ namespace XController
         {
             this.carIPAddresses[0] = IPAddress.Any;
             this.carIPAddresses[1] = IPAddress.Any;
+            this.locatorIPAddresses[0] = IPAddress.Any;
+            this.locatorIPAddresses[1] = IPAddress.Any;
             this.points_historicalLoc[0] = new Queue<SKPoint>(10);
             this.points_historicalLoc[1] = new Queue<SKPoint>(10);
 
@@ -389,9 +385,9 @@ namespace XController
                         case "heartbeat":
                             try
                             {
-                                if(this.carIPAddresses[id ?? 99].Address != sender.Address.Address)
+                                if(!this.carIPAddresses[id ?? 99].Equals(sender.Address))
                                 {
-                                    this.Toast($"小车{id}已发现，IP：{sender.Address.ToString()}", false, true);
+                                    this.Toast($"小车{id}已发现，IP：{sender.Address}", false, true);
                                     this.carIPAddresses[id ?? 99] = sender.Address;
                                 }
                             }
@@ -404,6 +400,10 @@ namespace XController
                         case "locate":
                             if(jObject["Msg"].HasValues)
                             {
+                                if(!this.locatorIPAddresses[id ?? 99].Equals(sender.Address))
+                                {
+                                    this.locatorIPAddresses[id ?? 99] = sender.Address;
+                                }
                                 JObject msg = jObject["Msg"] as JObject;
                                 if(msg.ContainsKey("position"))
                                 {
@@ -483,7 +483,6 @@ namespace XController
             {
                 var source = new HtmlWebViewSource();
                 source.Html = this.string_NoDevice;
-                // this.webView_Map.Source = source;
                 this.webView_Monitor.Source = source;
             }
         }
@@ -491,14 +490,6 @@ namespace XController
         private JObject MessageAssembler(enum_Command command, JObject args = null)
         {
             double speed = this.speed;
-            if( command == enum_Command.LeftRotate || command == enum_Command.RightRotate)
-            {
-                speed = this.speed * 0.6;
-            }
-            else if (command == enum_Command.LeftShift || command == enum_Command.RightShift)
-            {
-                speed = this.speed * 1.2;
-            }
 			JObject arg = new JObject
 			{
 				{ "Speed", speed },
@@ -532,24 +523,10 @@ namespace XController
                 case enum_Device.Car1:
                     ip = this.carIPAddresses[1].ToString();
                     break;
-
-                case enum_Device.Marker:
-                    ip = this.IPAddress_Marker.ToString();
-                    break;
                 case enum_Device.None:
                     return;
 
                 default:
-                    // Code below is useless, what's more, it causes crashing when trying to
-                    // execute a command without control target selected.
-                    // However, disabling the code commented below will cause
-                    // "targetClient" used but not assigned. 
-                    // So I have to return this function, after all, with an
-                    // invalid device, nothing will be executed.
-
-                    //targetClient = new TcpClient(IPAddress.None.ToString(), this.Int_TCPPort);
-                    //iPEndPoint = new IPEndPoint(this.IPAddress_Local, this.Int_TCPPort);
-
                     return;
             }
 
@@ -563,11 +540,6 @@ namespace XController
             {
                 this.Toast("网络错误, 未能发送指令，请重试\n" + e.Message, false);
             }
-
-        }
-
-        private void button_SetttingsConfirm_Clicked(object sender, EventArgs e)
-        {
 
         }
 
@@ -642,12 +614,9 @@ namespace XController
             //pp.Y = (float)(-pp.X * Math.Sin(this.orientation) + pp.Y * Math.Cos(this.orientation));
             canvas.RotateDegrees((float)this.orientation, pp.X, pp.Y);
             canvas.DrawText(indicator, pp.X, pp.Y, paint);
-            // For test
-            //canvas.RotateDegrees((float)this.orientation, (float)(info.Width / 2), (float)(info.Width / 2));
-            //canvas.DrawText(indicator, (float)(info.Width / 2), (float)(info.Width / 2 - sizeRect.Height / 2), paint);
             canvas.RotateDegrees((float)(-this.orientation), pp.X, pp.Y);
-            this.label_XLoc.Text = this.point_CarCurrentLoc.X.ToString();
-            this.label_YLoc.Text = this.point_CarCurrentLoc.Y.ToString();
+            this.label_XLoc.Text = (this.point_CarCurrentLoc.X * 6).ToString();
+            this.label_YLoc.Text = (this.point_CarCurrentLoc.Y * 4).ToString();
         }
 
         private void slider_speed_ValueChanged(object sender, ValueChangedEventArgs e)
@@ -677,6 +646,20 @@ namespace XController
             else
             {
                 Accelerometer.Stop();
+            }
+        }
+
+        private void Switch_DebugMode_Toggled(object sender, ToggledEventArgs e)
+        {
+            this.isDebugMode = switch_DebugMode.IsToggled;
+            try
+            {
+                this.ConfigureWebVideo(this.isDebugMode ? this.locatorIPAddresses[(int)this.Device_CurrentTarget - 1]
+                    : this.carIPAddresses[(int)this.Device_CurrentTarget - 1]);
+            }
+            catch(IndexOutOfRangeException)
+            {
+                return;
             }
         }
     }

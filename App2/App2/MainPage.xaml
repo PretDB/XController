@@ -26,12 +26,8 @@
                     </Grid.ColumnDefinitions>
 
                     
-                    <WebView x:Name="webView_Monitor" Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Grid.ColumnSpan="2"/>
-                    <Frame Padding="1, 1, 1, 1" Grid.Row="1" Grid.Column="1" Grid.RowSpan="1" Grid.ColumnSpan="1" Margin="0, 0, 0, 0">
-                        <!--
-                            <WebView x:Name="webView_Map" />
-                        <Image />
-                        -->
+                    <WebView x:Name="webView_Monitor" Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Grid.ColumnSpan="2" Margin="0, 0, 0, 0"/>
+                    <Frame Grid.Row="1" Grid.Column="1" Grid.RowSpan="1" Grid.ColumnSpan="1" Margin="0, 0, 0, 0">
                         <skia:SKCanvasView x:Name="skCanvas" PaintSurface="SKCanvasView_PaintSurface" >
                         <!--
                             <skia:SKCanvasView.GestureRecognizers>
@@ -75,14 +71,6 @@
                     <StackLayout x:Name="stackLayout_ModeSetting" Orientation="Vertical">
                         <Label x:Name="label_Mode" Text="模式设置"/>
                         <Picker x:Name="picker_Mode" Title="模式设置" SelectedIndexChanged="picker_Mode_SelectedIndexChanged" />
-                        <!--
-                        <Button x:Name="button_IRAvoidance" Text="红外避障" MinimumWidthRequest="100" Clicked="button_IRAvoidance_Clicked"/>
-                        <Button x:Name="button_SonarAvoidance" Text="超声避障" MinimumWidthRequest="100" Clicked="button_SonarAvoidance_Clicked"/>
-                        <Button x:Name="button_Track" Text="寻迹" MinimumWidthRequest="100" Clicked="button_Track_Clicked"/>
-                        <Button x:Name="button_LightTrack" Text="光跟踪" MinimumWidthRequest="100" Clicked="button_LightTrack_Clicked"/>
-                        <Button x:Name="button_HumanDetect" Text="人活动检测" MinimumWidthRequest="100" Clicked="button_HumanDetect_Clicked"/>
-                        <Button x:Name="button_Fire" Text="灭火" Clicked="button_Fire_Clicked"/>
-                        -->
                         <StackLayout x:Name="stackLayout_Fire" Orientation="Horizontal">
                             <Label x:Name="label_Fire" Text="灭火"/>
                             <Switch x:Name="switch_Fire" Toggled="switch_Fire_Toggled"/>
@@ -113,20 +101,10 @@
     <ContentPage x:Name="contentPage_Settings" Title="设置">
         <ContentPage.Padding>
             <OnPlatform x:TypeArguments="Thickness">
-                <On Platform="iOS,Android" Value="20, 10, 20, 10"/>
+                <On Platform="Android" Value="10, 10, 10, 10"/>
             </OnPlatform>
         </ContentPage.Padding>
 
-
-        <!--
-        <TableView Intent="Settings">
-            <TableRoot>
-                <TableSection Title="其他设置">
-                    <SwitchCell x:Name="switchCell_GravityControl" Text="重力控制" OnChanged="switchCell_GravityControl_OnChanged"/>
-                </TableSection>
-            </TableRoot>
-        </TableView>
-        -->
         <StackLayout>
             <Frame>
                 <StackLayout Orientation="Horizontal">
@@ -139,6 +117,13 @@
                 <StackLayout Orientation="Horizontal">
                     <Label x:Name="label_speed" Text="{Binding Source={x:Reference slider_speed}, Path=Value,StringFormat='速度：{0:0.00}'}"/>
                     <Slider x:Name="slider_speed" Minimum="0.0" Maximum="1.0" Value="0.8" ValueChanged="slider_speed_ValueChanged" HorizontalOptions="FillAndExpand"/>
+                </StackLayout>
+            </Frame>
+
+            <Frame>
+                <StackLayout Orientation="Horizontal">
+                    <Label Text="调试模式"/>
+                    <Switch x:Name="switch_DebugMode" Toggled="Switch_DebugMode_Toggled"/>
                 </StackLayout>
             </Frame>
         </StackLayout>
