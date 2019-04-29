@@ -89,9 +89,9 @@
                     <Label x:Name="label_connected" Text="" />
                     <Label Text="位置   "/>
                     <Label Text="X: "/>
-                    <Label x:Name="label_XLoc" Text="{Binding local:point_CarCurrentLoc.X.ToString()}"/>
+                    <Label x:Name="label_XLoc" Text='{Binding local:point_CarCurrentLoc.X.ToString("F2")}'/>
                     <Label Text="Y: "/>
-                    <Label x:Name="label_YLoc" Text="{Binding local:point_CarCurrentLoc.Y.ToString()}" />
+                    <Label x:Name="label_YLoc" Text='{Binding local:point_CarCurrentLoc.Y.ToString("F2")}' />
                 </StackLayout>
             </Frame>
         </StackLayout>
@@ -116,7 +116,7 @@
             <Frame>
                 <StackLayout Orientation="Horizontal">
                     <Label x:Name="label_speed" Text="{Binding Source={x:Reference slider_speed}, Path=Value,StringFormat='速度：{0:0.00}'}"/>
-                    <Slider x:Name="slider_speed" Minimum="0.0" Maximum="1.0" Value="0.8" ValueChanged="slider_speed_ValueChanged" HorizontalOptions="FillAndExpand"/>
+                    <Slider x:Name="slider_speed" Minimum="0.2" Maximum="1.0" Value="0.6" ValueChanged="slider_speed_ValueChanged" HorizontalOptions="FillAndExpand"/>
                 </StackLayout>
             </Frame>
 
@@ -125,6 +125,10 @@
                     <Label Text="调试模式"/>
                     <Switch x:Name="switch_DebugMode" Toggled="Switch_DebugMode_Toggled"/>
                 </StackLayout>
+            </Frame>
+
+            <Frame>
+                <Button x:Name="button_compassCalibrate" Text="罗盘校准" Clicked="Button_compassCalibrate_Clicked"/>
             </Frame>
         </StackLayout>
     </ContentPage>

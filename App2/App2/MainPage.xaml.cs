@@ -20,7 +20,7 @@ namespace XController
     public enum enum_Command
     {
         None = 100,
-        Stop =0,
+        Stop = 0,
         Forward,
         Backward,
         LeftShift,
@@ -33,6 +33,7 @@ namespace XController
         HumanDetect,
         FireDetect,
         SoundDetect,
+        Ridar,
         Track = 1000
     };
 
@@ -44,14 +45,15 @@ namespace XController
         Marker
     }
 
-	public partial class MainPage : TabbedPage
-	{
+    public partial class MainPage : TabbedPage
+    {
         public bool isDebugMode = false;
-		public double speed = 0.24;
+        public bool isCalibrating = false;
+        public double speed = 0.75;
         public double orientation = 0;
         private System.Numerics.Vector3 vector3_AccFiltered;
         private float accSensitivity = 1;
-		public bool fireDetect = false;
+        public bool fireDetect = false;
         public enum_Command lastCommand = enum_Command.Stop;
         public readonly string string_VideoUri = "/stream_simple.html";
         public readonly string string_controllerUri = "/controller";
@@ -109,7 +111,7 @@ namespace XController
                 {
                     this.ConfigureWebVideo(this.carIPAddresses[(int)value - 1]);
                 }
-                catch(IndexOutOfRangeException)
+                catch (IndexOutOfRangeException)
                 {
                     return;
                 }
@@ -117,17 +119,16 @@ namespace XController
         }
         private enum_Device _currentTarget;
 
-        public Point point_CarCurrentLoc = new Point(0, 0);
-        private Queue<SKPoint>[] points_historicalLoc = new Queue<SKPoint>[2];
+        public Point point_CarCurrentLoc = new Point(0.001, 0.001);
 
 
-		public MainPage()
-		{
-			InitializeComponent();
+        public MainPage()
+        {
+            InitializeComponent();
             InitializeNetwork();
             InitializeTarget();
             InitializeGravity();
-		}
+        }
 
         private void button_Forward_Pressed(object sender, EventArgs e)
         {
@@ -207,9 +208,15 @@ namespace XController
             this.MessageEmitter(this.MessageAssembler(enum_Command.SoundDetect));
         }
 
+        private void button_Ridar_Clicked(object sender, EventArgs e)
+        {
+            this.Toast("雷达避障模式", false);
+            this.MessageEmitter(this.MessageAssembler(enum_Command.Ridar));
+        }
+
         private void picker_Target_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if(picker_Target.SelectedIndex != 0)
+            if (picker_Target.SelectedIndex != 0)
             {
                 Target result = targets[picker_Target.SelectedIndex - 1];
                 this.Device_CurrentTarget = result.device;
@@ -254,9 +261,9 @@ namespace XController
             {
                 cmd = enum_Command.Stop;
             }
-            if(cmd != this.lastCommand)
+            if (cmd != this.lastCommand)
             {
-                switch(cmd)
+                switch (cmd)
                 {
                     case enum_Command.Stop:
                         this.button_Stop_Clicked(sender, e);
@@ -287,7 +294,7 @@ namespace XController
 
         private void picker_Mode_SelectedIndexChanged(object sender, EventArgs e)
         {
-            switch(picker_Mode.SelectedIndex)
+            switch (picker_Mode.SelectedIndex)
             {
                 case 1:
                     this.button_IRAvoidance_Clicked(sender, e);
@@ -306,6 +313,9 @@ namespace XController
                     break;
                 case 6:
                     this.button_SoundDetect_Clicked(sender, e);
+                    break;
+                case 7:
+                    this.button_Ridar_Clicked(sender, e);
                     break;
                 default:
                     //    this.button_Stop_Clicked(sender, e);
@@ -337,8 +347,6 @@ namespace XController
             this.carIPAddresses[1] = IPAddress.Any;
             this.locatorIPAddresses[0] = IPAddress.Any;
             this.locatorIPAddresses[1] = IPAddress.Any;
-            this.points_historicalLoc[0] = new Queue<SKPoint>(10);
-            this.points_historicalLoc[1] = new Queue<SKPoint>(10);
 
             IPAddress localIP = Dns.GetHostAddresses(Dns.GetHostName()).First(ip => ip.AddressFamily == AddressFamily.InterNetwork);
             this.IPAddress_Local = localIP;
@@ -369,43 +377,43 @@ namespace XController
                 encRecv = Encoding.UTF8.GetString(rawRecv);
 
                 JObject jObject = JObject.Parse(encRecv);
-                if(jObject.ContainsKey("Type"))
+                if (jObject.ContainsKey("Type"))
                 {
                     int? id = null;
                     id = (int)jObject["FromID"];
-                    if(id is null)
+                    if (id is null)
                     {
                         Thread.Sleep(300);
                         continue;
                     }
 
                     string type = jObject["Type"].ToString();
-                    switch(type)
+                    switch (type)
                     {
                         case "heartbeat":
                             try
                             {
-                                if(!this.carIPAddresses[id ?? 99].Equals(sender.Address))
+                                if (!this.carIPAddresses[id ?? 99].Equals(sender.Address))
                                 {
                                     this.Toast($"小车{id}已发现，IP：{sender.Address}", false, true);
                                     this.carIPAddresses[id ?? 99] = sender.Address;
                                 }
                             }
-                            catch(IndexOutOfRangeException)
+                            catch (IndexOutOfRangeException)
                             {
                                 Thread.Sleep(300);
                                 continue;
                             }
                             break;
                         case "locate":
-                            if(jObject["Msg"].HasValues)
+                            if (!this.locatorIPAddresses[id ?? 99].Equals(sender.Address))
                             {
-                                if(!this.locatorIPAddresses[id ?? 99].Equals(sender.Address))
-                                {
-                                    this.locatorIPAddresses[id ?? 99] = sender.Address;
-                                }
+                                this.locatorIPAddresses[id ?? 99] = sender.Address;
+                            }
+                            if (jObject["Msg"].HasValues)
+                            {
                                 JObject msg = jObject["Msg"] as JObject;
-                                if(msg.ContainsKey("position"))
+                                if (msg.ContainsKey("position"))
                                 {
                                     try
                                     {
@@ -413,20 +421,15 @@ namespace XController
                                         {
                                             Point gotP = new Point(double.Parse(msg["position"]["X"].ToString()), double.Parse(msg["position"]["Y"].ToString()));
                                             this.point_CarCurrentLoc = gotP;
-                                            if(this.points_historicalLoc[id ?? 3].Count > 10)
-                                            {
-                                                this.points_historicalLoc[id ?? 3].Dequeue();
-                                            }
-                                            this.points_historicalLoc[id ?? 3].Enqueue(new SKPoint((float)gotP.X, (float)gotP.Y));
                                         }
                                     }
-                                    catch(IndexOutOfRangeException)
+                                    catch (IndexOutOfRangeException)
                                     {
                                         Thread.Sleep(300);
                                         continue;
                                     }
                                 }
-                                if(msg.ContainsKey("orientation"))
+                                if (msg.ContainsKey("orientation"))
                                 {
                                     this.orientation = double.Parse(msg["orientation"].ToString());
                                 }
@@ -446,7 +449,7 @@ namespace XController
         {
             this.targets = Data.targets;
             picker_Target.Items.Add("设备");
-            foreach(var target in this.targets)
+            foreach (var target in this.targets)
             {
                 picker_Target.Items.Add(target.ToString());
             }
@@ -459,6 +462,7 @@ namespace XController
             picker_Mode.Items.Add("光跟踪模式");
             picker_Mode.Items.Add("人体活动检测模式");
             picker_Mode.Items.Add("声音检测模式");
+            picker_Mode.Items.Add("雷达避障模式");
             picker_Mode.SelectedIndex = 0;
         }
 
@@ -469,7 +473,7 @@ namespace XController
 
         private void ConfigureWebVideo(IPAddress targetIP)
         {
-            if(targetIP != IPAddress.Any)
+            if (targetIP != IPAddress.Any)
             {
                 string url0 = "http://" + targetIP.ToString() + ":8080" + this.string_VideoUri;
 
@@ -490,11 +494,12 @@ namespace XController
         private JObject MessageAssembler(enum_Command command, JObject args = null)
         {
             double speed = this.speed;
-			JObject arg = new JObject
-			{
-				{ "Speed", speed },
-				{ "Fire", this.fireDetect },
-			};
+            JObject arg = new JObject
+            {
+                { "Speed", speed },
+                { "Fire", this.fireDetect },
+                { "Debug", this.isDebugMode }
+            };
             JObject jObject_Message = new JObject
             {
                 {"Type" , "instruction"},
@@ -536,7 +541,7 @@ namespace XController
                 string requestData = message.ToString();
                 this.httpClient.PostAsync(uri, new StringContent(requestData, Encoding.UTF8, "application/json"));
             }
-            catch(System.Exception e)
+            catch (System.Exception e)
             {
                 this.Toast("网络错误, 未能发送指令，请重试\n" + e.Message, false);
             }
@@ -571,33 +576,24 @@ namespace XController
                 StrokeJoin = SKStrokeJoin.Round,
                 FakeBoldText = false
             };
-            foreach(Point p in s)
+            foreach (Point p in s)
             {
                 canvas.DrawCircle((float)p.X, (float)p.Y, 20, paint);
             }
 
             // Prepare to draw marker
-            SKPoint[] points;
-            switch(this.Device_CurrentTarget)
+            switch (this.Device_CurrentTarget)
             {
                 case enum_Device.Car1:
-                    points = this.points_historicalLoc[1].ToArray();
                     paint.Color = SKColors.HotPink;
                     break;
                 default:
-                    points = this.points_historicalLoc[0].ToArray();
                     paint.Color = SKColors.LightBlue;
                     break;
             }
             SKRect sizeRect = new SKRect();
             double textWidth = paint.MeasureText(indicator, ref sizeRect);
-            for(int a = 0; a < points.Length; a++)
-            {
-                points[a].X = info.Width * points[a].X;
-                points[a].Y = info.Height * points[a].Y;
-            }
-            canvas.DrawPoints(SKPointMode.Polygon, points, paint);
-            switch(this.Device_CurrentTarget)
+            switch (this.Device_CurrentTarget)
             {
                 case enum_Device.Car1:
                     paint.Color = SKColors.Red;
@@ -621,7 +617,7 @@ namespace XController
 
         private void slider_speed_ValueChanged(object sender, ValueChangedEventArgs e)
         {
-            this.speed = this.slider_speed.Value * 0.3;
+            this.speed = this.slider_speed.Value * 0.75;
             this.MessageEmitter(this.MessageAssembler(enum_Command.None));
         }
 
@@ -639,7 +635,7 @@ namespace XController
 
         private void switch_Gravity_Toggled(object sender, ToggledEventArgs e)
         {
-            if(this.switch_Gravity.IsToggled)           // Gravity On
+            if (this.switch_Gravity.IsToggled)           // Gravity On
             {
                 Accelerometer.Start(SensorSpeed.UI);
             }
@@ -654,12 +650,73 @@ namespace XController
             this.isDebugMode = switch_DebugMode.IsToggled;
             try
             {
-                this.ConfigureWebVideo(this.isDebugMode ? this.locatorIPAddresses[(int)this.Device_CurrentTarget - 1]
-                    : this.carIPAddresses[(int)this.Device_CurrentTarget - 1]);
+                int device = 99;
+                device = (int)this.Device_CurrentTarget - 1;
+                this.ConfigureWebVideo(this.isDebugMode ? this.locatorIPAddresses[device]
+                                                        : this.carIPAddresses[device]);
+                byte[] bytes;
+                if (this.isDebugMode)
+                {
+                    bytes = Encoding.ASCII.GetBytes("ON");
+                }
+                else
+                {
+                    bytes = Encoding.ASCII.GetBytes("OFF");
+                }
+                IPEndPoint iPEndPoint = new IPEndPoint(IPAddress.Broadcast, 6688);
+                for (int i = 0; i < 5; i++)
+                {
+                    this.udpClient.Send(bytes, bytes.Length, iPEndPoint);
+                }
             }
-            catch(IndexOutOfRangeException)
+            catch (IndexOutOfRangeException)
             {
                 return;
+            }
+        }
+
+        private async void Button_compassCalibrate_Clicked(object sender, EventArgs e)
+        {
+            bool action = await DisplayAlert("罗盘校准步骤", "点击“继续”将执行罗盘校准，届时请使AGV原地旋转。校准完成后会有提示。" +
+                "\r\n注意：校准期间请务必使AGV原地旋转，并保持远离金属物，否则将会影响校准效果，进而影响其他功能。", "继续", "取消");
+            if (action)
+            {
+                string ip;
+                switch (this.Device_CurrentTarget)
+                {
+                    case enum_Device.Car0:
+                        ip = this.locatorIPAddresses[0].ToString();
+                        break;
+
+                    case enum_Device.Car1:
+                        ip = this.locatorIPAddresses[1].ToString();
+                        break;
+                    case enum_Device.None:
+                        return;
+
+                    default:
+                        return;
+                }
+                string uri = "http://" + ip + ":6688/calib/";
+                try
+                {
+                    var res = await this.httpClient.GetAsync(uri);
+                    if (await res.Content.ReadAsStringAsync() == "DONE")
+                    {
+                        await DisplayAlert("罗盘校准", "罗盘校准结束，请重启该AGV", "完成");
+                        return;
+                    }
+
+                    else
+                    {
+                        await DisplayAlert("错误", res.Content.ToString(), "OK");
+                        return;
+                    }
+                }
+                catch(HttpRequestException)
+                {
+                    await DisplayAlert("错误", "出现了网络错误", "取消");
+                }
             }
         }
     }
