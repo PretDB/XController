@@ -20,10 +20,10 @@ namespace XController
                 switch (value)
                 {
                     case enum_Device.Car0:
-                        this.string_TargetName = "Car 0";
+                        this.string_TargetName = "AGV 0";
                         break;
                     case enum_Device.Car1:
-                        this.string_TargetName = "Car 1";
+                        this.string_TargetName = "AGV 1";
                         break;
                     case enum_Device.Marker:
                         this.string_TargetName = "Marker";

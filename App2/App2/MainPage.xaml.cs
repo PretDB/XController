@@ -49,7 +49,7 @@ namespace XController
     {
         public bool isDebugMode = false;
         public bool isCalibrating = false;
-        public double speed = 0.75;
+        public double speed = 0.45;
         public double orientation = 0;
         private System.Numerics.Vector3 vector3_AccFiltered;
         private float accSensitivity = 1;
@@ -395,7 +395,7 @@ namespace XController
                             {
                                 if (!this.carIPAddresses[id ?? 99].Equals(sender.Address))
                                 {
-                                    this.Toast($"小车{id}已发现，IP：{sender.Address}", false, true);
+                                    this.Toast($"AGV{id}已发现，IP：{sender.Address}", false, true);
                                     this.carIPAddresses[id ?? 99] = sender.Address;
                                 }
                             }
@@ -425,13 +425,24 @@ namespace XController
                                     }
                                     catch (IndexOutOfRangeException)
                                     {
-                                        Thread.Sleep(300);
+                                        Thread.Sleep(100);
                                         continue;
                                     }
                                 }
                                 if (msg.ContainsKey("orientation"))
                                 {
-                                    this.orientation = double.Parse(msg["orientation"].ToString());
+                                    try
+                                    {
+                                        if(this.Device_CurrentTarget == (enum_Device)((id + 1) ?? 3))
+                                        {
+                                            this.orientation = double.Parse(msg["orientation"].ToString());
+                                        }
+                                    }
+                                    catch(IndexOutOfRangeException)
+                                    {
+                                        Thread.Sleep(100);
+                                        continue;
+                                    }
                                 }
                             }
                             break;
@@ -587,8 +598,11 @@ namespace XController
                 case enum_Device.Car1:
                     paint.Color = SKColors.HotPink;
                     break;
-                default:
+                case enum_Device.Car0:
                     paint.Color = SKColors.LightBlue;
+                    break;
+                default:
+                    paint.Color = SKColors.Green;
                     break;
             }
             SKRect sizeRect = new SKRect();
@@ -604,15 +618,14 @@ namespace XController
             }
 
             SKPoint pp = new SKPoint();
-            pp.X = (float)(info.Width * this.point_CarCurrentLoc.X);
-            pp.Y = (float)(info.Height * this.point_CarCurrentLoc.Y);
-            //pp.X = (float)(pp.X * Math.Cos(this.orientation) + pp.Y * Math.Sin(this.orientation));
-            //pp.Y = (float)(-pp.X * Math.Sin(this.orientation) + pp.Y * Math.Cos(this.orientation));
+            pp.X = (float)(info.Width * this.point_CarCurrentLoc.X / 6.0f);
+            pp.Y = (float)(info.Height * this.point_CarCurrentLoc.Y / 4.0f);
             canvas.RotateDegrees((float)this.orientation, pp.X, pp.Y);
             canvas.DrawText(indicator, pp.X, pp.Y, paint);
             canvas.RotateDegrees((float)(-this.orientation), pp.X, pp.Y);
-            this.label_XLoc.Text = (this.point_CarCurrentLoc.X * 6).ToString();
-            this.label_YLoc.Text = (this.point_CarCurrentLoc.Y * 4).ToString();
+            this.label_XLoc.Text = (this.point_CarCurrentLoc.X ).ToString("F2");
+            this.label_YLoc.Text = (this.point_CarCurrentLoc.Y).ToString("F2");
+            this.label_Angl.Text = this.orientation.ToString("F2");
         }
 
         private void slider_speed_ValueChanged(object sender, ValueChangedEventArgs e)
