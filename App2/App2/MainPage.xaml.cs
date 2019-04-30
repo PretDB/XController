@@ -470,10 +470,10 @@ namespace XController
             picker_Mode.Items.Add("红外避障模式");
             picker_Mode.Items.Add("超声避障模式");
             picker_Mode.Items.Add("寻迹模式");
-            picker_Mode.Items.Add("光跟踪模式");
+            picker_Mode.Items.Add("光检测模式");
             picker_Mode.Items.Add("人体活动检测模式");
             picker_Mode.Items.Add("声音检测模式");
-            picker_Mode.Items.Add("雷达避障模式");
+            picker_Mode.Items.Add("激光雷达");
             picker_Mode.SelectedIndex = 0;
         }
 
@@ -567,8 +567,8 @@ namespace XController
 
             Point[] s = { new Point(2.0 / 6 * info.Width, 1.25 / 4 * info.Height),
                           new Point(2.0 / 6 * info.Width, 2.75 / 4 * info.Height),
-                          new Point(3.0 / 6 * info.Width, 1.25 / 4 * info.Height),
                           new Point(3.0 / 6 * info.Width, 2.75 / 4 * info.Height),
+                          new Point(3.0 / 6 * info.Width, 1.25 / 4 * info.Height),
                           new Point(4.0 / 6 * info.Width, 1.25 / 4 * info.Height),
                           new Point(4.0 / 6 * info.Width, 2.75 / 4 * info.Height) };
             string indicator = "V";
