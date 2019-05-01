@@ -658,9 +658,19 @@ namespace XController
             }
         }
 
-        private void Switch_DebugMode_Toggled(object sender, ToggledEventArgs e)
+        private async void Switch_DebugMode_Toggled(object sender, ToggledEventArgs e)
         {
             this.isDebugMode = switch_DebugMode.IsToggled;
+            if (this.switch_DebugMode.IsToggled)
+            {
+                bool action = await DisplayAlert("调试模式", "点击“继续”将启动调试界面，届时将关闭定位功能，在原图传界面显示定位灯的调试信息。" +
+                    "\r\n此模式和“显示地图”是冲突的。", "继续", "取消");
+                if (!action)
+                {
+                    return;
+                }
+                this.switch_ShowMap.IsToggled = false;
+            }
             try
             {
                 int device = 99;
@@ -677,9 +687,10 @@ namespace XController
                     bytes = Encoding.ASCII.GetBytes("OFF");
                 }
                 IPEndPoint iPEndPoint = new IPEndPoint(IPAddress.Broadcast, 6688);
-                for (int i = 0; i < 5; i++)
+                for (int i = 0; i < 25; i++)
                 {
                     this.udpClient.Send(bytes, bytes.Length, iPEndPoint);
+                    Thread.Sleep(10);
                 }
             }
             catch (IndexOutOfRangeException)
@@ -694,6 +705,12 @@ namespace XController
                 "\r\n注意：校准期间请务必使AGV原地旋转，并保持远离金属物，否则将会影响校准效果，进而影响其他功能。", "继续", "取消");
             if (action)
             {
+                action = await DisplayAlert("开始校准罗盘", "现在已经进入罗盘校准模式，请遥控AGV使其原地旋转。", "继续", "取消");
+                if (!action)
+                {
+                    return;
+                }
+
                 string ip;
                 switch (this.Device_CurrentTarget)
                 {
@@ -730,6 +747,14 @@ namespace XController
                 {
                     await DisplayAlert("错误", "出现了网络错误", "取消");
                 }
+            }
+        }
+
+        private void Switch_ShowMap_Toggled(object sender, ToggledEventArgs e)
+        {
+            if (this.switch_ShowMap.IsToggled)
+            {
+                this.switch_DebugMode.IsToggled = false;
             }
         }
     }

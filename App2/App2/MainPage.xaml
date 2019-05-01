@@ -86,7 +86,8 @@
                 </Frame>
             </StackLayout>
             <Frame>
-                <StackLayout Orientation="Horizontal">
+                <StackLayout Orientation="Horizontal"
+                           IsVisible="{Binding Source={x:Reference switch_ShowMap}, Path=IsToggled}">
                     <Label x:Name="label_connected" Text="" />
                     <Label Text="位置   "/>
                     <Label Text="X: "/>
@@ -137,7 +138,7 @@
             <Frame>
                 <StackLayout Orientation="Horizontal">
                     <Label Text="显示地图"/>
-                    <Switch x:Name="switch_ShowMap" IsToggled="False" HorizontalOptions="End"/>
+                    <Switch x:Name="switch_ShowMap" IsToggled="False" HorizontalOptions="End" Toggled="Switch_ShowMap_Toggled"/>
                 </StackLayout>
             </Frame>
         </StackLayout>
